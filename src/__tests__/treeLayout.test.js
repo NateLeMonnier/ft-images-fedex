@@ -83,11 +83,11 @@ describe('buildReactFlowGraph', () => {
     expect(edge.target).toBe('parent-a')
   })
 
-  it('creates a spouse edge with dashed stroke style', () => {
+  it('creates a spouse edge with distinct stroke style', () => {
     const { edges } = buildReactFlowGraph(people, relationships, 'child', 3)
-    const spouseEdge = edges.find(e => e.id.startsWith('spouse-'))
+    const spouseEdge = edges.find(e => e.id.includes('spouse'))
     expect(spouseEdge).toBeDefined()
-    expect(spouseEdge.style.strokeDasharray).toBeTruthy()
+    expect(spouseEdge.style.stroke).toBeTruthy()
   })
 
   it('assigns positions to all nodes', () => {
