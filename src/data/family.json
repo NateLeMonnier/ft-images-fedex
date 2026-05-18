@@ -1,0 +1,77 @@
+{
+  "family_id": "walker-family",
+  "people": [
+    {
+      "id": "kathryn-walker",
+      "name": "Kathryn Walker",
+      "birthDate": "5 Nov 1969",
+      "birthLocation": "Los Angeles, California",
+      "deathDate": null,
+      "notes": "",
+      "photos": ["placeholder.svg"]
+    },
+    {
+      "id": "harold-walker",
+      "name": "Harold F Walker",
+      "birthDate": "1940",
+      "birthLocation": "",
+      "deathDate": null,
+      "notes": "",
+      "photos": ["placeholder.svg"]
+    },
+    {
+      "id": "kathryn-moore",
+      "name": "Kathryn Moore",
+      "birthDate": "1940",
+      "birthLocation": "",
+      "deathDate": null,
+      "notes": "",
+      "photos": ["placeholder.svg"]
+    },
+    {
+      "id": "herman-walker",
+      "name": "Herman Walker",
+      "birthDate": "1914",
+      "birthLocation": "",
+      "deathDate": "1957",
+      "notes": "",
+      "photos": ["placeholder.svg"]
+    },
+    {
+      "id": "retha-hammack",
+      "name": "Retha R Hammack",
+      "birthDate": "1917",
+      "birthLocation": "",
+      "deathDate": "2001",
+      "notes": "",
+      "photos": ["placeholder.svg"]
+    },
+    {
+      "id": "eugene-moore",
+      "name": "Eugene G Moore",
+      "birthDate": "1912",
+      "birthLocation": "",
+      "deathDate": "1999",
+      "notes": "",
+      "photos": ["placeholder.svg"]
+    },
+    {
+      "id": "mary-hennessy",
+      "name": "Mary C Hennessy",
+      "birthDate": "1917",
+      "birthLocation": "",
+      "deathDate": "1986",
+      "notes": "",
+      "photos": ["placeholder.svg"]
+    }
+  ],
+  "relationships": [
+    { "personAId": "harold-walker",  "personBId": "kathryn-walker", "type": "parent" },
+    { "personAId": "kathryn-moore",  "personBId": "kathryn-walker", "type": "parent" },
+    { "personAId": "herman-walker",  "personBId": "harold-walker",  "type": "parent" },
+    { "personAId": "retha-hammack",  "personBId": "harold-walker",  "type": "parent" },
+    { "personAId": "eugene-moore",   "personBId": "kathryn-moore",  "type": "parent" },
+    { "personAId": "mary-hennessy",  "personBId": "kathryn-moore",  "type": "parent" },
+    { "personAId": "harold-walker",  "personBId": "kathryn-moore",  "type": "spouse" }
+  ]
+}
