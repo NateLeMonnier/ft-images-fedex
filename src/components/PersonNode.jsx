@@ -28,18 +28,7 @@ const PersonNode = memo(function PersonNode({ data }) {
 
       <div className="person-node__info">
         <div className="person-node__name">{person.name}</div>
-        {isPivot ? (
-          <>
-            {person.birthDate && (
-              <div className="person-node__sub">B: {person.birthDate}</div>
-            )}
-            {person.birthLocation && (
-              <div className="person-node__sub">{person.birthLocation}</div>
-            )}
-          </>
-        ) : (
-          <div className="person-node__sub">{yearRange}</div>
-        )}
+        <div className="person-node__sub">{yearRange}</div>
       </div>
 
       <div className="person-node__badge">{person.photos.length}</div>

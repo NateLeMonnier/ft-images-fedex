@@ -1,6 +1,5 @@
 import { Position } from '@xyflow/react'
 
-const PIVOT_WIDTH = 220
 const DEFAULT_WIDTH = 190
 const NODE_HEIGHT = 80
 const HALF_COUPLE = 48     // vertical offset: male above center, female below
@@ -179,7 +178,7 @@ export function buildReactFlowGraph(people, relationships, pivotId, maxAncestorD
   function addNode(id, x, y, isPivot = false) {
     const person = peopleById.get(id)
     if (!person) return
-    const width = isPivot ? PIVOT_WIDTH : DEFAULT_WIDTH
+    const width = DEFAULT_WIDTH
     nodes.push({
       id,
       type: 'personNode',
@@ -263,7 +262,7 @@ export function buildReactFlowGraph(people, relationships, pivotId, maxAncestorD
 
   const pivotNode = nodes.find(n => n.id === pivotId)
   const pivotCenter = pivotNode
-    ? { x: pivotNode.position.x + PIVOT_WIDTH / 2, y: pivotNode.position.y + NODE_HEIGHT / 2 }
+    ? { x: pivotNode.position.x + DEFAULT_WIDTH / 2, y: pivotNode.position.y + NODE_HEIGHT / 2 }
     : { x: 0, y: 0 }
 
   return { nodes, edges, pivotCenter }
