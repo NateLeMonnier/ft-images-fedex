@@ -101,6 +101,25 @@ public/photos/[person-id]/placeholder.svg   — 7 person folders
 - Death date display in UI (field exists in data model)
 - Mobile / <1024px
 
+## Open Questions (unresolved, flagged for later)
+
+- **Visual direction**: prototype uses teal (#4a8fa8). Partner PRD wants warm cream/terracotta/nostalgic feel (Georgia serif, off-white backgrounds, terracotta accents). Decision deferred to pre-production. Do not restyle without explicit confirmation.
+- **Default pivot**: currently hardcoded to `kathryn-walker`. PRD left open whether default should be self or oldest known ancestor.
+
+## Production Roadmap (not prototype scope — do not build without a new spec)
+
+- Next.js (App Router) on Vercel, FileMaker DB via serverless API layer, Cloudflare R2 for photos
+- Email/password auth, 30-day session, password reset
+- Photo upload via UI (JPG/PNG/HEIC/TIFF up to 50 MB, EXIF auto-fill)
+- Person editor with soft delete
+- GEDCOM 5.5.1 import with preview-then-commit (Phase 2)
+- Global search (people by name)
+- Operator portal: ZIP/folder upload, per-persona buckets, real-time progress
+- Identification flow: match uploaded photo buckets to tree people
+- Gamification on identification flow (progress bar, streaks, celebration animations)
+- Lightbox upgrades: arrow-key nav, full metadata, tagged people as links
+- Performance targets: <3s initial load, <1.5s person gallery (200 photos), 300-node tree
+
 ## Docs
 
 - Spec: `docs/superpowers/specs/2026-05-18-family-tree-prototype-design.md`
