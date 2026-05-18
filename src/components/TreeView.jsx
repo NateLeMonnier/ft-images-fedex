@@ -10,7 +10,7 @@ import { exportJson } from '../utils/exportJson'
 
 const nodeTypes = { personNode: PersonNode }
 
-const DEFAULT_PIVOT = 'kathryn-walker'
+const DEFAULT_PIVOT = 'laryn-david-brown'
 
 // Two-phase pivot transition:
 //   Phase 1 (pendingTransition set): pan smoothly to the clicked node's current

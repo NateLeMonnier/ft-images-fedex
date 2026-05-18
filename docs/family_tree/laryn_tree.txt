@@ -1,0 +1,824 @@
+{
+  "description": "Family tree centered on Laryn David Brown: 3 generations up, 2 generations down",
+  "generated_from": "Laryn_Family_Tree.ged",
+  "subject": {
+    "gedcom_id": "@I1365228910@",
+    "name": "Laryn David Brown",
+    "sex": "M",
+    "birth": {
+      "date": "27 March 1967",
+      "place": "Provo, Utah, Utah, USA"
+    },
+    "death": null,
+    "relationship_to_laryn": "subject",
+    "spouses": [
+      {
+        "gedcom_id": "@I1365246455@",
+        "name": "Andrea Louise Peacock",
+        "sex": "F",
+        "birth": {
+          "date": "7 June 1967",
+          "place": "Del Rio, Val Verde, Texas, USA"
+        },
+        "death": null,
+        "relationship_to_laryn": "spouse",
+        "marriage": {
+          "date": "29 April 1989",
+          "place": "Manti, Sanpete, Utah, USA"
+        }
+      },
+      {
+        "gedcom_id": "@I7013916811@",
+        "name": "Sarah Beth Wootton",
+        "sex": "F",
+        "birth": {
+          "date": "20 August 1972",
+          "place": "LDS Hospital, Salt Lake City, Salt Lake, Utah, USA"
+        },
+        "death": null,
+        "relationship_to_laryn": "spouse",
+        "marriage": {
+          "date": "20 August 2013",
+          "place": "Kaysville, Davis, Utah, USA"
+        }
+      }
+    ],
+    "parents": [
+      {
+        "marriage": {
+          "date": "24 June 1966",
+          "place": "Manti, Sanpete, Utah, USA"
+        },
+        "father": {
+          "gedcom_id": "@I1365063720@",
+          "name": "Larry Fred Brown",
+          "sex": "M",
+          "birth": {
+            "date": "25 Feb 1944",
+            "place": "Roanoke Rapids, Halifax, North Carolina, USA"
+          },
+          "death": null,
+          "relationship_to_laryn": "parent",
+          "spouses": [
+            {
+              "gedcom_id": "@I1290075183@",
+              "name": "Cheryl Violet Gold",
+              "sex": "F",
+              "birth": {
+                "date": "9 June 1946",
+                "place": "Port Angeles, Clallam, Washington, USA"
+              },
+              "death": null,
+              "relationship_to_laryn": "spouse",
+              "marriage": {
+                "date": "24 June 1966",
+                "place": "Manti, Sanpete, Utah, USA"
+              }
+            }
+          ],
+          "parents": [
+            {
+              "marriage": {
+                "date": "15 May 1943",
+                "place": "Roanoke Rapids, Halifax, North Carolina, USA"
+              },
+              "father": {
+                "gedcom_id": "@I1451692741@",
+                "name": "John Gurney Brown Jr.",
+                "sex": "M",
+                "birth": {
+                  "date": "20 Mar 1920",
+                  "place": "Hertford County, North Carolina, USA"
+                },
+                "death": {
+                  "date": "30 July 1995",
+                  "place": "Oklahoma City, Oklahoma, USA"
+                },
+                "relationship_to_laryn": "grandparent",
+                "spouses": [
+                  {
+                    "gedcom_id": "@I1365317520@",
+                    "name": "Mary Elizabeth Wooten",
+                    "sex": "F",
+                    "birth": {
+                      "date": "9 March 1926",
+                      "place": "Roanoke Rapids, Halifax, North Carolina, USA"
+                    },
+                    "death": {
+                      "date": "22 May 2014",
+                      "place": "Provo, Utah, Utah, USA"
+                    },
+                    "relationship_to_laryn": "spouse",
+                    "marriage": {
+                      "date": "15 May 1943",
+                      "place": "Roanoke Rapids, Halifax, North Carolina, USA"
+                    }
+                  },
+                  {
+                    "gedcom_id": "@I6976533243@",
+                    "name": "Patricia Joan Fletcher",
+                    "sex": "F",
+                    "birth": {
+                      "date": "6 Sep 1934",
+                      "place": "Van Alstyne, Grayson co Texas"
+                    },
+                    "death": {
+                      "date": "6 October 1963",
+                      "place": "Lawton, Comanche County, Oklahoma, USA"
+                    },
+                    "relationship_to_laryn": "spouse",
+                    "marriage": {}
+                  }
+                ],
+                "parents": [
+                  {
+                    "marriage": {
+                      "date": "3 Jan 1916",
+                      "place": "Hertford, North Carolina, USA"
+                    },
+                    "father": {
+                      "gedcom_id": "@I6105593011@",
+                      "name": "John Gurney Brown Sr.",
+                      "sex": "M",
+                      "birth": {
+                        "date": "7 November 1888",
+                        "place": "Bertie County, North Carolina, USA"
+                      },
+                      "death": {
+                        "date": "27 January 1939",
+                        "place": "Roanoke Rapids, Halifax, North Carolina, USA"
+                      },
+                      "relationship_to_laryn": "great-grandparent",
+                      "spouses": [
+                        {
+                          "gedcom_id": "@I6105593718@",
+                          "name": "Annie Euzelia Newsome",
+                          "sex": "F",
+                          "birth": {
+                            "date": "18 November 1899",
+                            "place": "Hexlena, Bertie, North Carolina, USA"
+                          },
+                          "death": {
+                            "date": "29 December 1989",
+                            "place": "Oxford, Granville, North Carolina, USA"
+                          },
+                          "relationship_to_laryn": "spouse",
+                          "marriage": {
+                            "date": "3 Jan 1916",
+                            "place": "Hertford, North Carolina, USA"
+                          }
+                        }
+                      ]
+                    },
+                    "mother": {
+                      "gedcom_id": "@I6105593718@",
+                      "name": "Annie Euzelia Newsome",
+                      "sex": "F",
+                      "birth": {
+                        "date": "18 November 1899",
+                        "place": "Hexlena, Bertie, North Carolina, USA"
+                      },
+                      "death": {
+                        "date": "29 December 1989",
+                        "place": "Oxford, Granville, North Carolina, USA"
+                      },
+                      "relationship_to_laryn": "great-grandparent",
+                      "spouses": [
+                        {
+                          "gedcom_id": "@I6105593011@",
+                          "name": "John Gurney Brown Sr.",
+                          "sex": "M",
+                          "birth": {
+                            "date": "7 November 1888",
+                            "place": "Bertie County, North Carolina, USA"
+                          },
+                          "death": {
+                            "date": "27 January 1939",
+                            "place": "Roanoke Rapids, Halifax, North Carolina, USA"
+                          },
+                          "relationship_to_laryn": "spouse",
+                          "marriage": {
+                            "date": "3 Jan 1916",
+                            "place": "Hertford, North Carolina, USA"
+                          }
+                        },
+                        {
+                          "gedcom_id": "@I420002093866@",
+                          "name": "William Henry Berry",
+                          "sex": "M",
+                          "birth": {
+                            "date": "abt 1902"
+                          },
+                          "death": {
+                            "date": "abt 1546"
+                          },
+                          "relationship_to_laryn": "spouse",
+                          "marriage": {
+                            "date": "4 May 1953",
+                            "place": "Greensville, Virginia, USA"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "mother": {
+                "gedcom_id": "@I1365317520@",
+                "name": "Mary Elizabeth Wooten",
+                "sex": "F",
+                "birth": {
+                  "date": "9 March 1926",
+                  "place": "Roanoke Rapids, Halifax, North Carolina, USA"
+                },
+                "death": {
+                  "date": "22 May 2014",
+                  "place": "Provo, Utah, Utah, USA"
+                },
+                "relationship_to_laryn": "grandparent",
+                "spouses": [
+                  {
+                    "gedcom_id": "@I1451692741@",
+                    "name": "John Gurney Brown Jr.",
+                    "sex": "M",
+                    "birth": {
+                      "date": "20 Mar 1920",
+                      "place": "Hertford County, North Carolina, USA"
+                    },
+                    "death": {
+                      "date": "30 July 1995",
+                      "place": "Oklahoma City, Oklahoma, USA"
+                    },
+                    "relationship_to_laryn": "spouse",
+                    "marriage": {
+                      "date": "15 May 1943",
+                      "place": "Roanoke Rapids, Halifax, North Carolina, USA"
+                    }
+                  },
+                  {
+                    "gedcom_id": "@I6976546058@",
+                    "name": "Warren Osgood Scott",
+                    "sex": "M",
+                    "birth": {
+                      "date": "30 August 1924",
+                      "place": "Fort Myers, Lee, Florida, USA"
+                    },
+                    "death": {
+                      "date": "19 May 1985",
+                      "place": "Collier, Florida, United States"
+                    },
+                    "relationship_to_laryn": "spouse",
+                    "marriage": {
+                      "date": "13 December 1959",
+                      "place": "Tampa, Hillsborough, Florida, USA"
+                    }
+                  },
+                  {
+                    "gedcom_id": "@I6976554550@",
+                    "name": "William Boston Mathis Jr.",
+                    "sex": "M",
+                    "birth": {
+                      "date": "24 December 1937",
+                      "place": "Suwannee, Dixie, Florida, USA"
+                    },
+                    "death": null,
+                    "relationship_to_laryn": "spouse",
+                    "marriage": {
+                      "date": "13 November 1964",
+                      "place": "Kingsland, Camden, Georgia, USA"
+                    }
+                  }
+                ],
+                "parents": [
+                  {
+                    "marriage": {
+                      "date": "29 Sep 1953",
+                      "place": "Greensville, Virginia, USA"
+                    },
+                    "father": {
+                      "gedcom_id": "@I6105076359@",
+                      "name": "John Henry Wooten",
+                      "sex": "M",
+                      "birth": {
+                        "date": "21 May 1896",
+                        "place": "Charleston, Charleston, South Carolina, USA"
+                      },
+                      "death": {
+                        "date": "7 August 1955",
+                        "place": "Richmond, Chesterfield, Virginia, USA"
+                      },
+                      "relationship_to_laryn": "great-grandparent",
+                      "spouses": [
+                        {
+                          "gedcom_id": "@I420045042302@",
+                          "name": "Bertha Strickland",
+                          "sex": "F",
+                          "birth": {
+                            "date": "abt 1899"
+                          },
+                          "death": {
+                            "date": "1800",
+                            "place": "Hertford County, North Carolina, USA"
+                          },
+                          "relationship_to_laryn": "spouse",
+                          "marriage": {
+                            "date": "13 Nov 1918",
+                            "place": "Halifax, North Carolina, USA"
+                          }
+                        },
+                        {
+                          "gedcom_id": "@I6915594300@",
+                          "name": "Myrtle Mae Nance",
+                          "sex": "F",
+                          "birth": {
+                            "date": "11 April 1904",
+                            "place": "Greensboro, Guilford, North Carolina, USA"
+                          },
+                          "death": {
+                            "date": "28 June 1961",
+                            "place": "Alexandria, Fairfax, Virginia, USA"
+                          },
+                          "relationship_to_laryn": "spouse",
+                          "marriage": {
+                            "date": "29 Sep 1953",
+                            "place": "Greensville, Virginia, USA"
+                          }
+                        }
+                      ]
+                    },
+                    "mother": {
+                      "gedcom_id": "@I6915594300@",
+                      "name": "Myrtle Mae Nance",
+                      "sex": "F",
+                      "birth": {
+                        "date": "11 April 1904",
+                        "place": "Greensboro, Guilford, North Carolina, USA"
+                      },
+                      "death": {
+                        "date": "28 June 1961",
+                        "place": "Alexandria, Fairfax, Virginia, USA"
+                      },
+                      "relationship_to_laryn": "great-grandparent",
+                      "spouses": [
+                        {
+                          "gedcom_id": "@I24036159907@",
+                          "name": "Jesse Melvin Southerland",
+                          "sex": "M",
+                          "birth": {
+                            "date": "1898"
+                          },
+                          "death": null,
+                          "relationship_to_laryn": "spouse",
+                          "marriage": {
+                            "date": "26 October 1919",
+                            "place": "Reidsville, Rockingham, North Carolina, USA"
+                          }
+                        },
+                        {
+                          "gedcom_id": "@I6105076359@",
+                          "name": "John Henry Wooten",
+                          "sex": "M",
+                          "birth": {
+                            "date": "21 May 1896",
+                            "place": "Charleston, Charleston, South Carolina, USA"
+                          },
+                          "death": {
+                            "date": "7 August 1955",
+                            "place": "Richmond, Chesterfield, Virginia, USA"
+                          },
+                          "relationship_to_laryn": "spouse",
+                          "marriage": {
+                            "date": "29 Sep 1953",
+                            "place": "Greensville, Virginia, USA"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "mother": {
+          "gedcom_id": "@I1290075183@",
+          "name": "Cheryl Violet Gold",
+          "sex": "F",
+          "birth": {
+            "date": "9 June 1946",
+            "place": "Port Angeles, Clallam, Washington, USA"
+          },
+          "death": null,
+          "relationship_to_laryn": "parent",
+          "spouses": [
+            {
+              "gedcom_id": "@I1365063720@",
+              "name": "Larry Fred Brown",
+              "sex": "M",
+              "birth": {
+                "date": "25 Feb 1944",
+                "place": "Roanoke Rapids, Halifax, North Carolina, USA"
+              },
+              "death": null,
+              "relationship_to_laryn": "spouse",
+              "marriage": {
+                "date": "24 June 1966",
+                "place": "Manti, Sanpete, Utah, USA"
+              }
+            }
+          ],
+          "parents": [
+            {
+              "marriage": {
+                "date": "4 June 1945",
+                "place": "Manti, Sanpete, Utah, USA"
+              },
+              "father": {
+                "gedcom_id": "@I_2047667675@",
+                "name": "Joseph H Gold",
+                "sex": "M",
+                "birth": {
+                  "date": "11 March 1891",
+                  "place": "Marion, Cassia, Idaho, USA"
+                },
+                "death": {
+                  "date": "24 February 1970",
+                  "place": "Payson, Utah, Utah, USA"
+                },
+                "relationship_to_laryn": "grandparent",
+                "spouses": [
+                  {
+                    "gedcom_id": "@I_710527489@",
+                    "name": "Rose Loretta Nelson",
+                    "sex": "F",
+                    "birth": {
+                      "date": "14 August 1893",
+                      "place": "Weston, Oneida, Idaho, USA"
+                    },
+                    "death": {
+                      "date": "1 September 1924",
+                      "place": "Cardston, Cardston, Alberta, Canada"
+                    },
+                    "relationship_to_laryn": "spouse",
+                    "marriage": {
+                      "date": "3 April 1912",
+                      "place": "Salt Lake City, Salt Lake, Utah, USA"
+                    }
+                  },
+                  {
+                    "gedcom_id": "@I371606675@",
+                    "name": "Wilma Edna Jones",
+                    "sex": "F",
+                    "birth": {
+                      "date": "19 August 1909",
+                      "place": "Glendale, Kane, Utah, USA"
+                    },
+                    "death": {
+                      "date": "17 March 2004",
+                      "place": "Estacada, Clackamas, Oregon, USA"
+                    },
+                    "relationship_to_laryn": "spouse",
+                    "marriage": {
+                      "date": "4 August 1927",
+                      "place": "Cardston, Alberta, Canada"
+                    }
+                  },
+                  {
+                    "gedcom_id": "@I_2047667674@",
+                    "name": "VIOLET GOLD",
+                    "sex": "F",
+                    "birth": {
+                      "date": "9 December 1908",
+                      "place": "Koosharem, Sevier, Utah, USA"
+                    },
+                    "death": {
+                      "date": "25 April 2001",
+                      "place": "Layton, Davis, Utah, USA"
+                    },
+                    "relationship_to_laryn": "spouse",
+                    "marriage": {
+                      "date": "4 June 1945",
+                      "place": "Manti, Sanpete, Utah, USA"
+                    }
+                  }
+                ],
+                "parents": [
+                  {
+                    "marriage": {
+                      "date": "1883",
+                      "place": "Utah, USA"
+                    },
+                    "father": {
+                      "gedcom_id": "@I_2047667673@",
+                      "name": "Joseph Hyrum Gold Sr",
+                      "sex": "M",
+                      "birth": {
+                        "date": "17 February 1852",
+                        "place": "9 Court Floodgate Street, Birmingham, Warwickshire, England"
+                      },
+                      "death": {
+                        "date": "16 June 1919",
+                        "place": "Lethbridge, Alberta, Canada"
+                      },
+                      "relationship_to_laryn": "great-grandparent",
+                      "spouses": [
+                        {
+                          "gedcom_id": "@I24229207376@",
+                          "name": "Sarah Elizabeth Merrill",
+                          "sex": "F",
+                          "birth": {
+                            "date": "22 Oct 1852",
+                            "place": "Millcreek, Salt Lake, Utah, USA"
+                          },
+                          "death": {
+                            "date": "18 Feb 1876",
+                            "place": "Smithfield, Cache, Utah, USA"
+                          },
+                          "relationship_to_laryn": "spouse",
+                          "marriage": {
+                            "date": "10 May 1875",
+                            "place": "Salt Lake City, Salt Lake, Utah Territory, USA"
+                          }
+                        },
+                        {
+                          "gedcom_id": "@I1417870045@",
+                          "name": "Minnie Euphemia Bain",
+                          "sex": "F",
+                          "birth": {
+                            "date": "14 May 1857",
+                            "place": "Lehi, Utah, Utah, USA"
+                          },
+                          "death": {
+                            "date": "6 February 1883",
+                            "place": "St Mary's Hospital, Salt Lake City, Salt Lake, Utah, USA"
+                          },
+                          "relationship_to_laryn": "spouse",
+                          "marriage": {
+                            "date": "4 December 1879",
+                            "place": "Utah, USA"
+                          }
+                        },
+                        {
+                          "gedcom_id": "@I_2047667666@",
+                          "name": "Eliza Adelaide Hinck",
+                          "sex": "F",
+                          "birth": {
+                            "date": "31 December 1862",
+                            "place": "Tooele, Tooele, Utah, USA"
+                          },
+                          "death": {
+                            "date": "19 February 1919",
+                            "place": "Cardston, Alberta, Canada"
+                          },
+                          "relationship_to_laryn": "spouse",
+                          "marriage": {
+                            "date": "1883",
+                            "place": "Utah, USA"
+                          }
+                        }
+                      ]
+                    },
+                    "mother": {
+                      "gedcom_id": "@I_2047667666@",
+                      "name": "Eliza Adelaide Hinck",
+                      "sex": "F",
+                      "birth": {
+                        "date": "31 December 1862",
+                        "place": "Tooele, Tooele, Utah, USA"
+                      },
+                      "death": {
+                        "date": "19 February 1919",
+                        "place": "Cardston, Alberta, Canada"
+                      },
+                      "relationship_to_laryn": "great-grandparent",
+                      "spouses": [
+                        {
+                          "gedcom_id": "@I_2047667673@",
+                          "name": "Joseph Hyrum Gold Sr",
+                          "sex": "M",
+                          "birth": {
+                            "date": "17 February 1852",
+                            "place": "9 Court Floodgate Street, Birmingham, Warwickshire, England"
+                          },
+                          "death": {
+                            "date": "16 June 1919",
+                            "place": "Lethbridge, Alberta, Canada"
+                          },
+                          "relationship_to_laryn": "spouse",
+                          "marriage": {
+                            "date": "1883",
+                            "place": "Utah, USA"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "mother": {
+                "gedcom_id": "@I_2047667674@",
+                "name": "VIOLET GOLD",
+                "sex": "F",
+                "birth": {
+                  "date": "9 December 1908",
+                  "place": "Koosharem, Sevier, Utah, USA"
+                },
+                "death": {
+                  "date": "25 April 2001",
+                  "place": "Layton, Davis, Utah, USA"
+                },
+                "relationship_to_laryn": "grandparent",
+                "spouses": [
+                  {
+                    "gedcom_id": "@I_2047667675@",
+                    "name": "Joseph H Gold",
+                    "sex": "M",
+                    "birth": {
+                      "date": "11 March 1891",
+                      "place": "Marion, Cassia, Idaho, USA"
+                    },
+                    "death": {
+                      "date": "24 February 1970",
+                      "place": "Payson, Utah, Utah, USA"
+                    },
+                    "relationship_to_laryn": "spouse",
+                    "marriage": {
+                      "date": "4 June 1945",
+                      "place": "Manti, Sanpete, Utah, USA"
+                    }
+                  }
+                ],
+                "parents": [
+                  {
+                    "marriage": {
+                      "date": "14 Oct 1903",
+                      "place": "Manti, Sanpete, Utah, USA"
+                    },
+                    "father": {
+                      "gedcom_id": "@I372282139@",
+                      "name": "Sisson Jacob Hatch",
+                      "sex": "M",
+                      "birth": {
+                        "date": "2 Apr 1879",
+                        "place": "Greenwich, Piute, Utah, USA"
+                      },
+                      "death": {
+                        "date": "4 Jul 1963",
+                        "place": "Koosharem, Sevier, Utah, USA"
+                      },
+                      "relationship_to_laryn": "great-grandparent",
+                      "spouses": [
+                        {
+                          "gedcom_id": "@I420045384653@",
+                          "name": "Castina Rosina Peterson",
+                          "sex": "F",
+                          "birth": {
+                            "date": "3 April 1879",
+                            "place": "Koosharem, Sevier, Utah Territory, USA"
+                          },
+                          "death": {
+                            "date": "4 January 1902",
+                            "place": "Koosharem, Sevier, Utah, USA"
+                          },
+                          "relationship_to_laryn": "spouse",
+                          "marriage": {
+                            "date": "31 Oct 1900",
+                            "place": "Manti, Sevier, Utah, USA"
+                          }
+                        },
+                        {
+                          "gedcom_id": "@I372282162@",
+                          "name": "Emma Rosetta DeLange",
+                          "sex": "F",
+                          "birth": {
+                            "date": "27 Feb 1882",
+                            "place": "Koosharem, Sevier, Utah, USA"
+                          },
+                          "death": {
+                            "date": "1 December 1959",
+                            "place": "Payson, Utah, Utah, USA"
+                          },
+                          "relationship_to_laryn": "spouse",
+                          "marriage": {
+                            "date": "14 Oct 1903",
+                            "place": "Manti, Sanpete, Utah, USA"
+                          }
+                        }
+                      ]
+                    },
+                    "mother": {
+                      "gedcom_id": "@I372282162@",
+                      "name": "Emma Rosetta DeLange",
+                      "sex": "F",
+                      "birth": {
+                        "date": "27 Feb 1882",
+                        "place": "Koosharem, Sevier, Utah, USA"
+                      },
+                      "death": {
+                        "date": "1 December 1959",
+                        "place": "Payson, Utah, Utah, USA"
+                      },
+                      "relationship_to_laryn": "great-grandparent",
+                      "spouses": [
+                        {
+                          "gedcom_id": "@I372282139@",
+                          "name": "Sisson Jacob Hatch",
+                          "sex": "M",
+                          "birth": {
+                            "date": "2 Apr 1879",
+                            "place": "Greenwich, Piute, Utah, USA"
+                          },
+                          "death": {
+                            "date": "4 Jul 1963",
+                            "place": "Koosharem, Sevier, Utah, USA"
+                          },
+                          "relationship_to_laryn": "spouse",
+                          "marriage": {
+                            "date": "14 Oct 1903",
+                            "place": "Manti, Sanpete, Utah, USA"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "children": [
+      {
+        "gedcom_id": "@I1365327701@",
+        "name": "Liam Andrew Peacock Brown",
+        "sex": "M",
+        "birth": {
+          "date": "24 January 1992",
+          "place": "Orem, Utah, Utah, USA"
+        },
+        "death": null,
+        "relationship_to_laryn": "child",
+        "spouses": [
+          {
+            "gedcom_id": "@I420140166301@",
+            "name": "Alison Paige Chernitzer",
+            "sex": "F",
+            "birth": {
+              "date": "28 Aug 1993",
+              "place": "Hampton, Virginia, USA"
+            },
+            "death": null,
+            "relationship_to_laryn": "spouse",
+            "marriage": {
+              "date": "15 July 2017"
+            }
+          }
+        ],
+        "children": []
+      },
+      {
+        "gedcom_id": "@I1365328562@",
+        "name": "Tiernan Louise Brown",
+        "sex": "F",
+        "birth": {
+          "date": "19 February 1995",
+          "place": "American Fork Hospital, American Fork, Utah, Utah, USA"
+        },
+        "death": null,
+        "relationship_to_laryn": "child",
+        "spouses": [
+          {
+            "gedcom_id": "@I422061955386@",
+            "name": "Daniel Hunter Merrill",
+            "sex": "M",
+            "birth": {
+              "date": "22 Mar 1995",
+              "place": "Provo, Utah, Utah, USA"
+            },
+            "death": null,
+            "relationship_to_laryn": "spouse",
+            "marriage": {
+              "date": "18 Oct 2018",
+              "place": "Payson, Utah, Utah, USA"
+            }
+          }
+        ],
+        "children": []
+      },
+      {
+        "gedcom_id": "@I1365332637@",
+        "name": "Shannon Leigh Brown",
+        "sex": "F",
+        "birth": {
+          "date": "16 May 1999",
+          "place": "American Fork, Utah, Utah, USA"
+        },
+        "death": null,
+        "relationship_to_laryn": "child",
+        "spouses": [],
+        "children": []
+      }
+    ]
+  }
+}
