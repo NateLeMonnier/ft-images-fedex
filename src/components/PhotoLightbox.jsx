@@ -78,31 +78,49 @@ export default function PhotoLightbox({ src, onClose, taggedPeople = [] }) {
               fontSize: 10,
               color: '#8B8580',
               display: 'block',
-              marginBottom: 4,
+              marginBottom: 10,
             }}>
               People in this photo
             </span>
-            <div>
-              {taggedPeople.map((person, i) => (
-                <span key={person.id}>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+              {taggedPeople.map(person => {
+                const photoUrl = person.photos[0]
+                  ? `/photos/${person.id}/${person.photos[0]}`
+                  : null
+                return (
                   <button
+                    key={person.id}
                     onClick={e => handlePersonClick(e, person.id)}
                     style={{
-                      background: 'none', border: 'none', cursor: 'pointer',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                      background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                    }}
+                  >
+                    <div style={{
+                      width: 40, height: 40, borderRadius: '50%',
+                      overflow: 'hidden', flexShrink: 0,
+                      background: '#F3F1EC',
+                      border: '0.5px solid #E5E1D9',
+                    }}>
+                      {photoUrl && (
+                        <img
+                          src={photoUrl}
+                          alt={person.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      )}
+                    </div>
+                    <span style={{
                       fontFamily: 'Georgia, serif',
                       fontSize: 10,
                       color: '#A43032',
-                      padding: 0,
-                      textDecoration: 'underline',
-                    }}
-                  >
-                    {person.name}
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {person.name}
+                    </span>
                   </button>
-                  {i < taggedPeople.length - 1 && (
-                    <span style={{ color: '#8B8580', fontSize: 10, fontFamily: 'Georgia, serif' }}>, </span>
-                  )}
-                </span>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}

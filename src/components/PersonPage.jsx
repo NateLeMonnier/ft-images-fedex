@@ -24,7 +24,7 @@ const FONT = {
 export default function PersonPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { data, updatePerson, photoTags } = useFamilyData()
+  const { data, updatePerson, getPeopleInPhoto } = useFamilyData()
   const [lightboxPhoto, setLightboxPhoto] = useState(null)
   const [editOpen, setEditOpen] = useState(false)
 
@@ -158,7 +158,7 @@ export default function PersonPage() {
             return (
               <div
                 key={filename}
-                onClick={() => setLightboxPhoto({ url, key })}
+                onClick={() => setLightboxPhoto({ url, filename })}
                 style={{
                   aspectRatio: '1', background: COLORS.photoPlaceholder,
                   borderRadius: 4, cursor: 'pointer', overflow: 'hidden',
@@ -175,17 +175,13 @@ export default function PersonPage() {
         </div>
       </div>
 
-      {lightboxPhoto && (() => {
-        const taggedIds = photoTags[lightboxPhoto.key] ?? []
-        const taggedPeople = taggedIds.map(tid => data.people.find(p => p.id === tid)).filter(Boolean)
-        return (
-          <PhotoLightbox
-            src={lightboxPhoto.url}
-            onClose={() => setLightboxPhoto(null)}
-            taggedPeople={taggedPeople}
-          />
-        )
-      })()}
+      {lightboxPhoto && (
+        <PhotoLightbox
+          src={lightboxPhoto.url}
+          onClose={() => setLightboxPhoto(null)}
+          taggedPeople={getPeopleInPhoto(person.id, lightboxPhoto.filename)}
+        />
+      )}
 
       {editOpen && (
         <EditModal

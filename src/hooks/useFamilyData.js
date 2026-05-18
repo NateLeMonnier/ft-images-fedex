@@ -36,9 +36,19 @@ export function useFamilyData() {
     setData(mergeOverrides(rawData, overrides))
   }
 
-  // photoTags: { "person-id/filename": ["person-id", ...] }
-  // Stored in family.json and not overridden via localStorage (partner populates the file directly)
   const photoTags = rawData.photoTags ?? {}
 
-  return { data, updatePerson, photoTags }
+  // Returns every person who appears in a given photo.
+  // If photoTags has an explicit entry for the key, that wins.
+  // Otherwise scans all people's photos arrays for the same filename.
+  function getPeopleInPhoto(personId, filename) {
+    const key = `${personId}/${filename}`
+    const taggedIds = photoTags[key]
+    if (taggedIds && taggedIds.length > 0) {
+      return taggedIds.map(id => data.people.find(p => p.id === id)).filter(Boolean)
+    }
+    return data.people.filter(p => p.photos.includes(filename))
+  }
+
+  return { data, updatePerson, getPeopleInPhoto }
 }

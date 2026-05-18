@@ -43,15 +43,22 @@ export default function TreeView() {
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
 
-  // Rebuild graph only when underlying data changes, not when pivot changes.
+  // Always build from DEFAULT_PIVOT so the full tree is shown regardless of
+  // which person was navigated from. pivotId only controls highlight + pan.
   useEffect(() => {
-    const graph = buildReactFlowGraph(data.people, data.relationships, pivotId)
+    const graph = buildReactFlowGraph(data.people, data.relationships, DEFAULT_PIVOT)
     setNodes(graph.nodes.map(n => ({
       ...n,
-      data: { ...n.data, onEdit: setEditingPersonId },
+      data: { ...n.data, isPivot: n.id === pivotId, onEdit: setEditingPersonId },
     })))
     setEdges(graph.edges)
-    setPivotCenter(graph.pivotCenter)
+    // Pan to pivotId's position if it's in the graph, else fall back to default center.
+    // 95 = DEFAULT_WIDTH/2 (190), 40 = NODE_HEIGHT/2 (80)
+    const targetNode = graph.nodes.find(n => n.id === pivotId)
+    setPivotCenter(targetNode
+      ? { x: targetNode.position.x + 95, y: targetNode.position.y + 40 }
+      : graph.pivotCenter
+    )
   }, [data])
 
   // When pivot changes, update the highlight on nodes and pan — no rebuild.
