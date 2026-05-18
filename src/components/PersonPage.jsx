@@ -9,8 +9,8 @@ const PAGE_BG = '#1a2e38'
 export default function PersonPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { data, updatePerson } = useFamilyData()
-  const [lightboxPhoto, setLightboxPhoto] = useState(null)
+  const { data, updatePerson, photoTags } = useFamilyData()
+  const [lightboxPhoto, setLightboxPhoto] = useState(null) // { url, key }
   const [editOpen, setEditOpen] = useState(false)
 
   const person = data.people.find(p => p.id === id)
@@ -39,14 +39,14 @@ export default function PersonPage() {
         padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.08)',
       }}>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate(`/?pivot=${person.id}`)}
           style={{
             background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
             color: 'rgba(255,255,255,0.55)', borderRadius: 6, padding: '5px 12px',
             fontSize: 12, cursor: 'pointer',
           }}
         >
-          ← Family Tree
+          ← Their Tree
         </button>
         <span style={{ flex: 1, fontSize: 18, fontWeight: 600 }}>{person.name}</span>
         <button
@@ -114,7 +114,7 @@ export default function PersonPage() {
           return (
             <div
               key={filename}
-              onClick={() => setLightboxPhoto(url)}
+              onClick={() => setLightboxPhoto({ url, key: `${person.id}/${filename}` })}
               style={{
                 aspectRatio: '1', background: '#2a3e4a', borderRadius: 4,
                 cursor: 'pointer', position: 'relative', overflow: 'hidden',
@@ -136,9 +136,17 @@ export default function PersonPage() {
         })}
       </div>
 
-      {lightboxPhoto && (
-        <PhotoLightbox src={lightboxPhoto} onClose={() => setLightboxPhoto(null)} />
-      )}
+      {lightboxPhoto && (() => {
+        const taggedIds = photoTags[lightboxPhoto.key] ?? []
+        const taggedPeople = taggedIds.map(tid => data.people.find(p => p.id === tid)).filter(Boolean)
+        return (
+          <PhotoLightbox
+            src={lightboxPhoto.url}
+            onClose={() => setLightboxPhoto(null)}
+            taggedPeople={taggedPeople}
+          />
+        )
+      })()}
 
       {editOpen && (
         <EditModal

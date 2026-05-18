@@ -36,5 +36,9 @@ export function useFamilyData() {
     setData(mergeOverrides(rawData, overrides))
   }
 
-  return { data, updatePerson }
+  // photoTags: { "person-id/filename": ["person-id", ...] }
+  // Stored in family.json and not overridden via localStorage (partner populates the file directly)
+  const photoTags = rawData.photoTags ?? {}
+
+  return { data, updatePerson, photoTags }
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { ReactFlow, useNodesState, useEdgesState, Controls, useReactFlow } from '@xyflow/react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import '@xyflow/react/dist/style.css'
 import PersonNode from './PersonNode'
 import EditModal from './EditModal'
@@ -62,8 +62,9 @@ function PivotFitter({ pivotCenter, pendingTransition, onTransitionComplete }) {
 
 export default function TreeView() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { data, updatePerson } = useFamilyData()
-  const [pivotId, setPivotId] = useState(DEFAULT_PIVOT)
+  const [pivotId, setPivotId] = useState(() => searchParams.get('pivot') ?? DEFAULT_PIVOT)
   const [pivotCenter, setPivotCenter] = useState(null)
   const [pendingTransition, setPendingTransition] = useState(null)
   const [editingPersonId, setEditingPersonId] = useState(null)
