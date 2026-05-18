@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-18
 **Project:** ft-images-fedex
-**Status:** Approved
+**Status:** Approved — updated after partner PRD review (2026-05-18)
 
 ---
 
@@ -14,7 +14,7 @@ A React + Vite single-page prototype that displays a family photo tree. Photos a
 
 ## Tech Stack
 
-- **Frontend:** React + Vite
+- **Frontend:** React + Vite *(prototype only — partner PRD targets Next.js on Vercel with a serverless API layer and FileMaker DB. Migration is a production-phase decision.)*
 - **Tree rendering:** React Flow (chosen over custom CSS because GEDCOM support in Phase 2 requires a data-driven, dynamically-sized tree — a hand-rolled CSS layout would need a full rewrite)
 - **Routing:** React Router
 - **Persistence:** `family.json` in Git as source of truth; localStorage for unsaved edits; Export JSON button to download and commit changes
@@ -45,10 +45,11 @@ public/
 
 ## Data Model
 
-`family.json` holds a `people` array. Each person has a stable `id` that doubles as their photo folder name and React Flow node key.
+`family.json` has a top-level `family_id`, a `people` array, and a `relationships` array. The `family_id` field is added now (single-family prototype) to keep the schema aligned with the future multi-tenant production data model — no schema migration needed later.
 
 ```json
 {
+  "family_id": "walker-family",
   "people": [
     {
       "id": "jane-smith",
@@ -57,16 +58,21 @@ public/
       "birthLocation": "Los Angeles, California",
       "deathDate": null,
       "notes": "",
-      "parentIds": ["harold-walker", "kathryn-moore"],
       "photos": ["01.jpg", "02.jpg"]
     }
+  ],
+  "relationships": [
+    { "personAId": "harold-walker", "personBId": "jane-smith", "type": "parent" },
+    { "personAId": "kathryn-moore", "personBId": "jane-smith", "type": "parent" },
+    { "personAId": "harold-walker", "personBId": "kathryn-moore", "type": "spouse" }
   ]
 }
 ```
 
-- `parentIds` drives edge generation in React Flow. Each entry becomes a directed edge from child to parent.
+- `relationships` drives all edge generation in React Flow. `type: "parent"` becomes a directed parent→child edge. `type: "spouse"` becomes a visually distinct spouse connector (dashed or different color).
 - `photos` are filenames resolved to `public/photos/[id]/[filename]`.
 - The first photo in the array is used as the node thumbnail.
+- Photo metadata (caption, taken_date, location) is not included in the prototype. Deferred to the production data model.
 
 ---
 
@@ -84,15 +90,19 @@ public/
 
 ## Tree View
 
-- **Layout:** Left-to-right pedigree chart, 3 generations (7 nodes: 1 subject, 2 parents, 4 grandparents)
+- **Layout:** Bi-directional tree centered on a pivot person, rendered left-to-right using dagre auto-layout (`@dagrejs/dagre` + `dagre-d3`). Ancestors expand to the right; descendants to the left. Default pivot is the subject (Kathryn Walker).
+- **Depth limit:** Nodes beyond 3 generations from the pivot are filtered out. The filtering mechanism is implemented; explicit expand/collapse buttons are deferred — the demo dataset only has 3 generations so there is nothing to expand.
 - **Background:** Teal (#4a8fa8)
-- **Nodes:** React Flow custom nodes — white cards (190×64px) with a photo thumbnail on the left, name and year range on the right, and a photo count badge
-- **Subject node:** Darker card (#1a2e38), wider (220px), shows full birth date and location (not just year range)
-- **Connectors:** Right-angle edges — horizontal from node right edge to a midpoint, vertical joining sibling connections, horizontal to parent left edge
+- **Nodes:** React Flow custom nodes — white cards with a photo thumbnail on the left, name and year range on the right, and a photo count badge
+- **Pivot node:** Darker card (#1a2e38), wider, shows full birth date and location
+- **Parent/child connectors:** Right-angle edges in white/light
+- **Spouse connectors:** Visually distinct — dashed line or warm accent color to distinguish from parent/child edges
+- **Right-click a node:** Sets that person as the new pivot; tree re-renders bi-directionally from the new pivot
 - **Edit icon:** Appears on node hover; opens the Edit Modal
-- **Click target:** The entire node is clickable and navigates to the Person Page. The photo count badge is decorative only.
+- **Click target:** The entire node navigates to the Person Page
 - **Export JSON button:** Top-right of the tree page
-- **Dashed vertical line:** A decorative SVG element rendered as an absolute-positioned overlay below the subject node. It is not a React Flow edge — just a visual cue that the tree can extend further back.
+
+> **Implementation note:** Bi-directional layout with dagre is the most complex piece of the prototype. It requires `@dagrejs/dagre` as an additional dependency and a pivot-aware graph computation step before React Flow renders. Budget extra time here.
 
 ---
 
@@ -141,23 +151,61 @@ For the prototype, each person gets a folder under `public/photos/[person-id]/` 
 
 ## Prototype Family Data
 
-Uses the Walker family from the reference image:
+Uses the Walker family from the reference image. `family_id: "walker-family"`.
 
-| ID | Name | Years | Parents |
-|---|---|---|---|
-| `kathryn-walker` | Kathryn Walker | 1969– | harold-walker, kathryn-moore |
-| `harold-walker` | Harold F Walker | 1940– | herman-walker, retha-hammack |
-| `kathryn-moore` | Kathryn Moore | 1940– | eugene-moore, mary-hennessy |
-| `herman-walker` | Herman Walker | 1914–1957 | — |
-| `retha-hammack` | Retha R Hammack | 1917–2001 | — |
-| `eugene-moore` | Eugene G Moore | 1912–1999 | — |
-| `mary-hennessy` | Mary C Hennessy | 1917–1986 | — |
+**People:**
+
+| ID | Name | Years |
+|---|---|---|
+| `kathryn-walker` | Kathryn Walker | 1969– |
+| `harold-walker` | Harold F Walker | 1940– |
+| `kathryn-moore` | Kathryn Moore | 1940– |
+| `herman-walker` | Herman Walker | 1914–1957 |
+| `retha-hammack` | Retha R Hammack | 1917–2001 |
+| `eugene-moore` | Eugene G Moore | 1912–1999 |
+| `mary-hennessy` | Mary C Hennessy | 1917–1986 |
+
+**Relationships:**
+
+| personAId | personBId | type |
+|---|---|---|
+| `harold-walker` | `kathryn-walker` | parent |
+| `kathryn-moore` | `kathryn-walker` | parent |
+| `herman-walker` | `harold-walker` | parent |
+| `retha-hammack` | `harold-walker` | parent |
+| `eugene-moore` | `kathryn-moore` | parent |
+| `mary-hennessy` | `kathryn-moore` | parent |
+| `harold-walker` | `kathryn-moore` | spouse |
+
+---
+
+## Copy and Tone Rules
+
+Applied to all user-facing UI text (button labels, empty states, headings, modal copy).
+
+- Frame every action as preservation, not a task. ("Preserve this memory" not "Save changes.")
+- Celebrate identity and history, not task completion.
+- Never let a user exit without an effort summary (e.g. edit modal confirms what was saved before closing).
+- Banned in UI-facing text: "bucket," "cluster," "entity." Internal code/variable names are fine.
+
+---
+
+## PRD Conflict Notes
+
+These conflicts were reviewed on 2026-05-18. Decisions documented for future reference.
+
+| # | Topic | Repo decision | PRD position | Resolution |
+|---|---|---|---|---|
+| 1 | Visual theme | Teal (#4a8fa8), modern | Warm cream/terracotta, nostalgic | Keep teal for prototype. Revisit visual direction before production. |
+| 2 | Tech stack | React + Vite | Next.js on Vercel, FileMaker, Cloudflare R2 | Keep React + Vite for prototype. Production migration is a separate decision. |
+| 3 | Face recognition | Listed as Phase 1 feature | Out of scope for v1.0 — Google Photos handles external clustering | **Switched to PRD.** In-app face recognition is removed from the roadmap. Photo-to-person assignment will be handled externally (Google Photos) and imported. |
+| 4 | Relationship model | `parentIds` array on person | Separate `Relationship` entity with `type: "parent" \| "spouse"` | **Switched to PRD.** Data model updated to use a top-level `relationships` array. Enables spouse links and aligns with future production schema. |
 
 ---
 
 ## Out of Scope for Prototype
 
-- Face recognition / photo-to-person matching (Phase 1)
+- Face recognition / photo-to-person matching *(removed from roadmap — see PRD conflict note 3)*
 - GEDCOM file upload (Phase 2)
 - Backend or database
 - Authentication
