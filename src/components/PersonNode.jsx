@@ -4,9 +4,11 @@ import { Handle, Position } from '@xyflow/react'
 const PersonNode = memo(function PersonNode({ data }) {
   const { person, isPivot, onEdit } = data
 
-  const photoUrl = person.photos[0]
-    ? `/photos/${person.id}/${person.photos[0]}`
-    : null
+  const primaryFile = person.primaryPhoto
+  const firstPhoto = person.photos[0]
+  const photoUrl = primaryFile
+    ? person.photos.find(p => p.filename === primaryFile)?.url ?? firstPhoto?.url ?? null
+    : firstPhoto?.url ?? null
 
   const birthYear = person.birthDate?.match(/\d{4}/)?.[0] ?? '?'
   const deathYear = person.deathDate?.match(/\d{4}/)?.[0] ?? ''

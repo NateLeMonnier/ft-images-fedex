@@ -57,6 +57,8 @@ export default function PhotoLightbox({
   src,
   onClose,
   taggedPeople = [],
+  allPeople = [],
+  photoId,
   onSetProfile,
   isProfile,
   metadata,
@@ -65,19 +67,27 @@ export default function PhotoLightbox({
   onPrev,
   onNext,
   onUpdateMetadata,
+  onTagPerson,
+  onRemovePerson,
+  onDelete,
 }) {
   const navigate = useNavigate()
 
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [date, setDate] = useState(formatDate(metadata?.date) || '')
   const [location, setLocation] = useState(metadata?.location || '')
   const [description, setDescription] = useState(metadata?.description || '')
   const [saved, setSaved] = useState(false)
+  const [showTagPicker, setShowTagPicker] = useState(false)
+  const [tagSearch, setTagSearch] = useState('')
 
   useEffect(() => {
     setDate(formatDate(metadata?.date) || '')
     setLocation(metadata?.location || '')
     setDescription(metadata?.description || '')
     setSaved(false)
+    setShowTagPicker(false)
+    setTagSearch('')
   }, [metadata?.date, metadata?.location, metadata?.description])
 
   const hasChanges =
@@ -112,6 +122,11 @@ export default function PhotoLightbox({
     onClose()
     navigate(`/person/${personId}`)
   }
+
+  const taggedIds = new Set(taggedPeople.map(p => p.id))
+  const availablePeople = allPeople
+    .filter(p => !taggedIds.has(p.id))
+    .filter(p => !tagSearch || p.name.toLowerCase().includes(tagSearch.toLowerCase()))
 
   return (
     <div
@@ -195,27 +210,68 @@ export default function PhotoLightbox({
             />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
-            <button
-              onClick={handleSave}
-              disabled={!hasChanges && !saved}
-              style={{
-                background: hasChanges ? COLORS.brownRed : 'none',
-                color: hasChanges ? '#fff' : COLORS.warmGray,
-                border: hasChanges ? 'none' : `0.5px solid ${COLORS.border}`,
-                borderRadius: 16,
-                padding: '6px 18px',
-                fontFamily: FONT.ui,
-                fontSize: 12,
-                cursor: hasChanges ? 'pointer' : 'default',
-                transition: 'all 0.15s',
-              }}
-            >
-              Save
-            </button>
+            {hasChanges && (
+              <button
+                onClick={handleSave}
+                style={{
+                  background: COLORS.brownRed,
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 16,
+                  padding: '6px 18px',
+                  fontFamily: FONT.ui,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                Save
+              </button>
+            )}
             {saved && (
               <span style={{ fontFamily: FONT.body, fontSize: 12, color: COLORS.olive }}>
                 Saved
               </span>
+            )}
+            {onDelete && !hasChanges && !saved && (
+              confirmDelete ? (
+                <>
+                  <span style={{ fontFamily: FONT.body, fontSize: 12, color: COLORS.warmDark }}>
+                    Remove this photo?
+                  </span>
+                  <button
+                    onClick={() => { setConfirmDelete(false); onDelete() }}
+                    style={{
+                      background: '#c0392b', border: 'none', borderRadius: 16,
+                      padding: '5px 14px', fontFamily: FONT.ui, fontSize: 12,
+                      color: '#fff', cursor: 'pointer',
+                    }}
+                  >
+                    Yes, delete
+                  </button>
+                  <button
+                    onClick={() => setConfirmDelete(false)}
+                    style={{
+                      background: 'none', border: `0.5px solid ${COLORS.border}`,
+                      borderRadius: 16, padding: '5px 14px', fontFamily: FONT.ui,
+                      fontSize: 12, color: COLORS.warmGray, cursor: 'pointer',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  style={{
+                    background: 'none', border: `0.5px solid ${COLORS.border}`,
+                    borderRadius: 16, padding: '6px 14px', fontFamily: FONT.ui,
+                    fontSize: 12, color: COLORS.warmGray, cursor: 'pointer',
+                  }}
+                >
+                  Delete photo
+                </button>
+              )
             )}
           </div>
         </div>
@@ -242,31 +298,33 @@ export default function PhotoLightbox({
           </div>
         )}
 
-        {/* Tagged people with avatar thumbnails */}
-        {taggedPeople.length > 0 && (
-          <div style={{
-            marginTop: 12,
-            borderTop: `0.5px solid ${COLORS.border}`,
-            paddingTop: 12,
+        {/* People in this photo */}
+        <div style={{
+          marginTop: 12,
+          borderTop: `0.5px solid ${COLORS.border}`,
+          paddingTop: 12,
+        }}>
+          <span style={{
+            fontFamily: FONT.body,
+            fontSize: 10,
+            color: COLORS.warmGray,
+            display: 'block',
+            marginBottom: 10,
           }}>
-            <span style={{
-              fontFamily: FONT.body,
-              fontSize: 10,
-              color: COLORS.warmGray,
-              display: 'block',
-              marginBottom: 10,
-            }}>
-              People in this photo
-            </span>
-            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-              {taggedPeople.map(person => {
-                const thumbFile = person.primaryPhoto || person.photos[0]
-                const photoUrl = thumbFile
-                  ? `/photos/${person.id}/${thumbFile}`
-                  : null
-                return (
+            People in this photo
+          </span>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+            {taggedPeople.map(person => {
+              const primaryMatch = person.primaryPhoto
+                ? person.photos.find(p => p.filename === person.primaryPhoto)
+                : null
+              const photoUrl = primaryMatch?.url || person.photos[0]?.url || null
+              return (
+                <div
+                  key={person.id}
+                  style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}
+                >
                   <button
-                    key={person.id}
                     onClick={e => handlePersonClick(e, person.id)}
                     style={{
                       display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
@@ -296,11 +354,88 @@ export default function PhotoLightbox({
                       {person.name}
                     </span>
                   </button>
-                )
-              })}
-            </div>
+                  {onRemovePerson && (
+                    <button
+                      onClick={() => onRemovePerson(person.id)}
+                      style={{
+                        position: 'absolute', top: -4, right: -4,
+                        width: 16, height: 16, borderRadius: '50%',
+                        background: COLORS.warmGray, color: '#fff',
+                        border: 'none', fontSize: 10, lineHeight: '16px',
+                        cursor: 'pointer', padding: 0, textAlign: 'center',
+                      }}
+                      title="Remove from photo"
+                    >
+                      &times;
+                    </button>
+                  )}
+                </div>
+              )
+            })}
+
+            {/* Tag someone button */}
+            {onTagPerson && (
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setShowTagPicker(!showTagPicker)}
+                  style={{
+                    width: 40, height: 40, borderRadius: '50%',
+                    background: COLORS.photoPlaceholder,
+                    border: `1px dashed ${COLORS.border}`,
+                    cursor: 'pointer', fontSize: 18, color: COLORS.warmGray,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                  title="Tag someone in this photo"
+                >
+                  +
+                </button>
+                {showTagPicker && (
+                  <div style={{
+                    position: 'absolute', top: 48, left: 0, zIndex: 10,
+                    background: '#fff', border: `0.5px solid ${COLORS.border}`,
+                    borderRadius: 8, padding: 8, width: 200,
+                    boxShadow: '0 4px 12px rgba(74,65,58,0.15)',
+                    maxHeight: 240, overflowY: 'auto',
+                  }}>
+                    <input
+                      type="text"
+                      value={tagSearch}
+                      onChange={e => setTagSearch(e.target.value)}
+                      placeholder="Search people..."
+                      style={{ ...inputStyle, marginBottom: 6 }}
+                      autoFocus
+                    />
+                    {availablePeople.slice(0, 10).map(p => (
+                      <button
+                        key={p.id}
+                        onClick={() => {
+                          onTagPerson(p.id)
+                          setShowTagPicker(false)
+                          setTagSearch('')
+                        }}
+                        style={{
+                          display: 'block', width: '100%', textAlign: 'left',
+                          background: 'none', border: 'none', padding: '6px 8px',
+                          fontFamily: FONT.body, fontSize: 12, color: COLORS.warmDark,
+                          cursor: 'pointer', borderRadius: 4,
+                        }}
+                        onMouseEnter={e => e.target.style.background = COLORS.photoPlaceholder}
+                        onMouseLeave={e => e.target.style.background = 'none'}
+                      >
+                        {p.name}
+                      </button>
+                    ))}
+                    {availablePeople.length === 0 && (
+                      <div style={{ padding: '6px 8px', fontSize: 12, color: COLORS.warmGray }}>
+                        No matches
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Footer navigation */}
         {photoCount > 1 && (

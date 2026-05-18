@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useFamilyData } from '../hooks/useFamilyData'
+import { uploadPhotos } from '../utils/uploadPhotos'
 import PhotoLightbox from './PhotoLightbox'
 import EditModal from './EditModal'
 
@@ -42,12 +43,20 @@ const FONT = {
   ui: "Inter, Helvetica, Arial, sans-serif",
 }
 
+const PAGE_SIZE = 100
+
 export default function PersonPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { data, updatePerson, getPeopleInPhoto, photoMeta, updatePhotoMetadata } = useFamilyData()
-  const [lightboxIndex, setLightboxIndex] = useState(null)
+  const { data, updatePerson, getPeopleInPhoto, updatePhotoMetadata, tagPersonInPhoto, removePersonFromPhoto, deletePhoto, refreshPhotos } = useFamilyData()
+  const [lightboxPhotoId, setLightboxPhotoId] = useState(null)
   const [editOpen, setEditOpen] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(null)
+  const [uploadResult, setUploadResult] = useState(null)
+  const [sortOrder, setSortOrder] = useState(() => localStorage.getItem('photoSort') || 'newest')
+  const [page, setPage] = useState(0)
+  const fileInputRef = useRef(null)
 
   const person = data.people.find(p => p.id === id)
 
@@ -62,16 +71,73 @@ export default function PersonPage() {
     )
   }
 
-  const primaryFilename = person.primaryPhoto || person.photos[0]
-  const primaryPhoto = primaryFilename
-    ? `/photos/${person.id}/${primaryFilename}`
-    : null
+  const rawPhotos = person.photos || []
+
+  const photos = useMemo(() => {
+    const sorted = [...rawPhotos].sort((a, b) => {
+      const da = parseLooseDate(a.date)
+      const db = parseLooseDate(b.date)
+      const ta = da && !isNaN(da.getTime()) ? da.getTime() : null
+      const tb = db && !isNaN(db.getTime()) ? db.getTime() : null
+      if (ta == null && tb == null) return (a.filename || '').localeCompare(b.filename || '')
+      if (ta == null) return 1
+      if (tb == null) return -1
+      if (ta === tb) return (a.filename || '').localeCompare(b.filename || '')
+      return sortOrder === 'newest' ? tb - ta : ta - tb
+    })
+    return sorted
+  }, [rawPhotos, sortOrder])
+
+  const totalPages = Math.ceil(photos.length / PAGE_SIZE)
+  const safeePage = Math.min(page, totalPages - 1, Math.max(0, page))
+  const pagePhotos = photos.slice(safeePage * PAGE_SIZE, (safeePage + 1) * PAGE_SIZE)
+
+  const primaryPhoto = rawPhotos.find(p => p.filename === person.primaryPhoto) || rawPhotos[0]
+  const primaryPhotoUrl = primaryPhoto?.url || null
+
+  const lightboxIndex = lightboxPhotoId != null
+    ? photos.findIndex(p => p.id === lightboxPhotoId)
+    : -1
+
+  function toggleSort() {
+    const next = sortOrder === 'newest' ? 'oldest' : 'newest'
+    setSortOrder(next)
+    setPage(0)
+    localStorage.setItem('photoSort', next)
+  }
+
+  function goToPage(p) {
+    setPage(p)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const birthYear = person.birthDate ? person.birthDate.match(/\d{4}/)?.[0] : null
   const deathYear = person.deathDate ? person.deathDate.match(/\d{4}/)?.[0] : null
   const metaLine = [
     birthYear && deathYear ? `${birthYear} – ${deathYear}` : birthYear ? `b. ${birthYear}` : null,
   ].filter(Boolean).join('')
+
+  async function handleUpload(e) {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    const imageCount = Array.from(files).filter(f => /\.(jpe?g|png|gif|webp|tiff?|bmp|heic|heif)$/i.test(f.name)).length
+    if (imageCount === 0) return
+
+    setUploading(true)
+    setUploadResult(null)
+    setUploadProgress({ current: 0, total: imageCount, filename: '' })
+
+    const results = await uploadPhotos(files, person.id, (progress) => {
+      setUploadProgress(progress)
+    })
+
+    await refreshPhotos()
+    setUploading(false)
+    setUploadProgress(null)
+    setUploadResult(results)
+    fileInputRef.current.value = ''
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.pageBg, color: COLORS.warmDark, fontFamily: FONT.body }}>
@@ -91,16 +157,48 @@ export default function PersonPage() {
         >
           &larr; Back to family tree
         </button>
-        <button
-          onClick={() => setEditOpen(true)}
-          style={{
-            background: 'none', border: `0.5px solid ${COLORS.border}`,
-            color: COLORS.warmGray, borderRadius: 16, padding: '5px 14px',
-            fontSize: 12, cursor: 'pointer', fontFamily: FONT.ui,
-          }}
-        >
-          Edit
-        </button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button
+            onClick={toggleSort}
+            style={{
+              background: 'none', border: `0.5px solid ${COLORS.border}`,
+              color: COLORS.warmGray, borderRadius: 16, padding: '5px 14px',
+              fontSize: 12, cursor: 'pointer', fontFamily: FONT.ui,
+            }}
+          >
+            {sortOrder === 'newest' ? 'Newest first' : 'Oldest first'}
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            style={{
+              background: 'none', border: `0.5px solid ${COLORS.border}`,
+              color: uploading ? COLORS.border : COLORS.brownRed, borderRadius: 16, padding: '5px 14px',
+              fontSize: 12, cursor: uploading ? 'default' : 'pointer', fontFamily: FONT.ui,
+            }}
+          >
+            {uploading ? `Uploading ${uploadProgress?.current}/${uploadProgress?.total}...` : 'Add photos'}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*"
+            webkitdirectory=""
+            style={{ display: 'none' }}
+            onChange={handleUpload}
+          />
+          <button
+            onClick={() => setEditOpen(true)}
+            style={{
+              background: 'none', border: `0.5px solid ${COLORS.border}`,
+              color: COLORS.warmGray, borderRadius: 16, padding: '5px 14px',
+              fontSize: 12, cursor: 'pointer', fontFamily: FONT.ui,
+            }}
+          >
+            Edit
+          </button>
+        </div>
       </div>
 
       {/* Header and bio card */}
@@ -111,9 +209,9 @@ export default function PersonPage() {
       }}>
         {/* Centered portrait header */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-          {primaryPhoto ? (
+          {primaryPhotoUrl ? (
             <img
-              src={primaryPhoto}
+              src={primaryPhotoUrl}
               alt={person.name}
               style={{
                 width: 78, height: 78, borderRadius: '50%',
@@ -135,9 +233,9 @@ export default function PersonPage() {
             </h1>
             <div style={{ fontSize: 14, color: COLORS.warmGray, marginTop: 4 }}>
               {metaLine}
-              {metaLine && person.photos.length > 0 && <span> &middot; </span>}
-              {person.photos.length > 0 && (
-                <span style={{ color: COLORS.olive }}>{person.photos.length} photo{person.photos.length !== 1 ? 's' : ''}</span>
+              {metaLine && photos.length > 0 && <span> &middot; </span>}
+              {photos.length > 0 && (
+                <span style={{ color: COLORS.olive }}>{photos.length} photo{photos.length !== 1 ? 's' : ''}</span>
               )}
             </div>
           </div>
@@ -174,51 +272,182 @@ export default function PersonPage() {
         <div style={{
           display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 4,
         }}>
-          {person.photos.map((filename, idx) => {
-            const url = `/photos/${person.id}/${filename}`
-            return (
-              <div
-                key={filename}
-                onClick={() => setLightboxIndex(idx)}
-                style={{
-                  aspectRatio: '1', background: COLORS.photoPlaceholder,
-                  borderRadius: 4, cursor: 'pointer', overflow: 'hidden',
-                }}
-              >
-                <img
-                  src={url}
-                  alt={`${person.name} photo ${idx + 1}`}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                />
-              </div>
-            )
-          })}
+          {pagePhotos.map((photo, idx) => (
+            <div
+              key={photo.id || photo.filename}
+              onClick={() => setLightboxPhotoId(photo.id)}
+              style={{
+                aspectRatio: '1', background: COLORS.photoPlaceholder,
+                borderRadius: 4, cursor: 'pointer', overflow: 'hidden',
+              }}
+            >
+              <img
+                src={photo.url}
+                alt={`${person.name} photo ${safeePage * PAGE_SIZE + idx + 1}`}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            </div>
+          ))}
         </div>
+
+        {totalPages > 1 && (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: 4, marginTop: 24, fontFamily: FONT.ui, fontSize: 13,
+          }}>
+            <button
+              onClick={() => goToPage(safeePage - 1)}
+              disabled={safeePage === 0}
+              style={{
+                background: 'none', border: 'none', padding: '6px 10px',
+                color: safeePage === 0 ? COLORS.border : COLORS.warmDark,
+                cursor: safeePage === 0 ? 'default' : 'pointer',
+                fontFamily: FONT.ui, fontSize: 13,
+              }}
+            >
+              &larr; Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => {
+              if (totalPages <= 7 || i === 0 || i === totalPages - 1 || Math.abs(i - safeePage) <= 1) {
+                return (
+                  <button
+                    key={i}
+                    onClick={() => goToPage(i)}
+                    style={{
+                      background: i === safeePage ? COLORS.brownRed : 'none',
+                      color: i === safeePage ? '#fff' : COLORS.warmGray,
+                      border: i === safeePage ? 'none' : `0.5px solid ${COLORS.border}`,
+                      borderRadius: 16, padding: '5px 12px',
+                      cursor: 'pointer', fontFamily: FONT.ui, fontSize: 12,
+                      minWidth: 32,
+                    }}
+                  >
+                    {i + 1}
+                  </button>
+                )
+              }
+              if (i === 1 && safeePage > 3) return <span key={i} style={{ color: COLORS.warmGray, padding: '0 4px' }}>&hellip;</span>
+              if (i === totalPages - 2 && safeePage < totalPages - 4) return <span key={i} style={{ color: COLORS.warmGray, padding: '0 4px' }}>&hellip;</span>
+              return null
+            })}
+            <button
+              onClick={() => goToPage(safeePage + 1)}
+              disabled={safeePage >= totalPages - 1}
+              style={{
+                background: 'none', border: 'none', padding: '6px 10px',
+                color: safeePage >= totalPages - 1 ? COLORS.border : COLORS.warmDark,
+                cursor: safeePage >= totalPages - 1 ? 'default' : 'pointer',
+                fontFamily: FONT.ui, fontSize: 13,
+              }}
+            >
+              Next &rarr;
+            </button>
+          </div>
+        )}
       </div>
 
-      {lightboxIndex !== null && (() => {
-        const filename = person.photos[lightboxIndex]
-        const key = `${person.id}/${filename}`
-        const url = `/photos/${person.id}/${filename}`
-        const rawMeta = photoMeta[key] || {}
-        const meta = isAfterDeath(rawMeta.date, person.deathDate)
-          ? { ...rawMeta, date: null }
-          : rawMeta
+      {/* Upload progress overlay */}
+      {(uploading || uploadResult) && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 40,
+          background: 'rgba(74,65,58,0.45)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: 8, padding: '32px 40px',
+            width: 360, textAlign: 'center', fontFamily: FONT.body,
+          }}>
+            {uploading ? (
+              <>
+                <div style={{ fontSize: 16, color: COLORS.warmDark, marginBottom: 16 }}>
+                  Uploading photos...
+                </div>
+                <div style={{
+                  height: 6, borderRadius: 3, background: COLORS.photoPlaceholder,
+                  overflow: 'hidden', marginBottom: 12,
+                }}>
+                  <div style={{
+                    height: '100%', borderRadius: 3, background: COLORS.brownRed,
+                    width: `${((uploadProgress?.current || 0) / (uploadProgress?.total || 1)) * 100}%`,
+                    transition: 'width 0.3s',
+                  }} />
+                </div>
+                <div style={{ fontSize: 13, color: COLORS.warmGray }}>
+                  {uploadProgress?.current} of {uploadProgress?.total}
+                </div>
+                <div style={{
+                  fontSize: 11, color: COLORS.warmGray, marginTop: 4,
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>
+                  {uploadProgress?.filename}
+                </div>
+              </>
+            ) : uploadResult && (
+              <>
+                <div style={{ fontSize: 16, color: COLORS.warmDark, marginBottom: 12 }}>
+                  Upload complete
+                </div>
+                <div style={{ fontSize: 13, color: COLORS.warmGray, lineHeight: 1.6 }}>
+                  {uploadResult.uploaded > 0 && <div>{uploadResult.uploaded} photo{uploadResult.uploaded !== 1 ? 's' : ''} added</div>}
+                  {uploadResult.linked > 0 && <div>{uploadResult.linked} already in library, linked to {person.name}</div>}
+                  {uploadResult.repaired > 0 && <div style={{ color: COLORS.olive }}>{uploadResult.repaired} date{uploadResult.repaired !== 1 ? 's' : ''} repaired from metadata</div>}
+                  {uploadResult.errors.length > 0 && (
+                    <div style={{ color: '#c0392b' }}>{uploadResult.errors.length} failed</div>
+                  )}
+                </div>
+                <button
+                  onClick={() => setUploadResult(null)}
+                  style={{
+                    marginTop: 16, background: COLORS.brownRed, color: '#fff',
+                    border: 'none', borderRadius: 16, padding: '8px 24px',
+                    fontFamily: FONT.ui, fontSize: 13, cursor: 'pointer',
+                  }}
+                >
+                  Done
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {lightboxPhotoId != null && lightboxIndex >= 0 && (() => {
+        const photo = photos[lightboxIndex]
+        const meta = isAfterDeath(photo.date, person.deathDate)
+          ? { ...photo, date: null }
+          : photo
         return (
           <PhotoLightbox
-            src={url}
-            onClose={() => setLightboxIndex(null)}
-            taggedPeople={getPeopleInPhoto(person.id, filename)}
-            isProfile={filename === primaryFilename}
+            src={photo.url}
+            onClose={() => setLightboxPhotoId(null)}
+            taggedPeople={getPeopleInPhoto(photo.id)}
+            allPeople={data.people}
+            photoId={photo.id}
+            isProfile={photo.filename === (person.primaryPhoto || photos[0]?.filename)}
             onSetProfile={() => {
-              updatePerson(person.id, { primaryPhoto: filename })
+              updatePerson(person.id, { primaryPhoto: photo.filename })
             }}
             metadata={meta}
             photoIndex={lightboxIndex}
-            photoCount={person.photos.length}
-            onPrev={lightboxIndex > 0 ? () => setLightboxIndex(lightboxIndex - 1) : null}
-            onNext={lightboxIndex < person.photos.length - 1 ? () => setLightboxIndex(lightboxIndex + 1) : null}
-            onUpdateMetadata={(changes) => updatePhotoMetadata(key, changes)}
+            photoCount={photos.length}
+            onPrev={lightboxIndex > 0 ? () => {
+              const newIndex = lightboxIndex - 1
+              setLightboxPhotoId(photos[newIndex].id)
+              setPage(Math.floor(newIndex / PAGE_SIZE))
+            } : null}
+            onNext={lightboxIndex < photos.length - 1 ? () => {
+              const newIndex = lightboxIndex + 1
+              setLightboxPhotoId(photos[newIndex].id)
+              setPage(Math.floor(newIndex / PAGE_SIZE))
+            } : null}
+            onUpdateMetadata={(changes) => updatePhotoMetadata(photo.id, changes)}
+            onTagPerson={(personId) => tagPersonInPhoto(photo.id, personId)}
+            onRemovePerson={(personId) => removePersonFromPhoto(photo.id, personId)}
+            onDelete={async () => {
+              const nextPhoto = photos[lightboxIndex + 1] || photos[lightboxIndex - 1]
+              await deletePhoto(photo.id, person.id)
+              setLightboxPhotoId(nextPhoto?.id || null)
+            }}
           />
         )
       })()}

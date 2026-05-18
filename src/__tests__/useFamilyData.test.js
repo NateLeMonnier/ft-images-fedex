@@ -8,6 +8,11 @@ const mockFrom = vi.fn()
 vi.mock('../lib/supabase', () => ({
   supabase: {
     from: (...args) => mockFrom(...args),
+    storage: {
+      from: () => ({
+        getPublicUrl: (path) => ({ data: { publicUrl: `https://example.com/${path}` } }),
+      }),
+    },
   },
 }))
 
@@ -15,6 +20,8 @@ function makeChain(data = []) {
   return {
     select: vi.fn().mockResolvedValue({ data, error: null }),
     upsert: vi.fn().mockResolvedValue({ data: null, error: null }),
+    update: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ data: null, error: null }) })),
+    delete: vi.fn(() => ({ eq: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ data: null, error: null }) })) })),
   }
 }
 
@@ -25,15 +32,16 @@ function wrapper({ children }) {
 }
 
 describe('useFamilyData', () => {
-  let personChain, metaChain
+  let personChain, photoPeopleChain
 
   beforeEach(() => {
     vi.clearAllMocks()
     personChain = makeChain([])
-    metaChain = makeChain([])
+    photoPeopleChain = makeChain([])
     mockFrom.mockImplementation((table) => {
       if (table === 'person_overrides') return personChain
-      if (table === 'photo_metadata') return metaChain
+      if (table === 'photo_people') return photoPeopleChain
+      if (table === 'photos') return makeChain()
       return makeChain()
     })
   })
@@ -52,7 +60,7 @@ describe('useFamilyData', () => {
     ])
     mockFrom.mockImplementation((table) => {
       if (table === 'person_overrides') return personChain
-      if (table === 'photo_metadata') return metaChain
+      if (table === 'photo_people') return photoPeopleChain
       return makeChain()
     })
 
@@ -67,7 +75,7 @@ describe('useFamilyData', () => {
     personChain = { ...makeChain([]), upsert: upsertMock }
     mockFrom.mockImplementation((table) => {
       if (table === 'person_overrides') return personChain
-      if (table === 'photo_metadata') return metaChain
+      if (table === 'photo_people') return photoPeopleChain
       return makeChain()
     })
 
@@ -88,48 +96,42 @@ describe('useFamilyData', () => {
     expect(person.birthDate).toBe('1 Jan 1967')
   })
 
-  it('updatePhotoMetadata calls Supabase upsert', async () => {
-    const upsertMock = vi.fn().mockResolvedValue({ data: null, error: null })
-    metaChain = { ...makeChain([]), upsert: upsertMock }
-    mockFrom.mockImplementation((table) => {
-      if (table === 'person_overrides') return personChain
-      if (table === 'photo_metadata') return metaChain
-      return makeChain()
-    })
-
-    const { result } = renderHook(() => useFamilyData(), { wrapper })
-    await waitFor(() => expect(result.current.loaded).toBe(true))
-
-    await result.current.updatePhotoMetadata('john-gurney-brown-jr/photo.jpg', {
-      date: '1967-03-27',
-      location: 'Cape Cod',
-      description: 'Beach day',
-    })
-
-    expect(upsertMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        photo_key: 'john-gurney-brown-jr/photo.jpg',
-        date: '1967-03-27',
-        location: 'Cape Cod',
-        description: 'Beach day',
-      })
-    )
-  })
-
-  it('loads photo metadata from Supabase', async () => {
-    metaChain = makeChain([
-      { photo_key: 'john/test.jpg', date: '1990-01-01', location: 'Boston', description: 'Test' },
+  it('loads photos from photo_people join', async () => {
+    photoPeopleChain = makeChain([
+      {
+        person_id: 'john-gurney-brown-jr',
+        photo_id: 'abc-123',
+        photos: {
+          id: 'abc-123',
+          filename: 'test.jpg',
+          storage_path: 'photos/test.jpg',
+          date: '1990-01-01',
+          location: 'Boston',
+          description: 'Test',
+          width: 800,
+          height: 600,
+          camera_model: 'Canon',
+        },
+      },
     ])
     mockFrom.mockImplementation((table) => {
       if (table === 'person_overrides') return personChain
-      if (table === 'photo_metadata') return metaChain
+      if (table === 'photo_people') return photoPeopleChain
       return makeChain()
     })
 
     const { result } = renderHook(() => useFamilyData(), { wrapper })
     await waitFor(() => expect(result.current.loaded).toBe(true))
-    expect(result.current.photoMeta['john/test.jpg']).toEqual(
-      expect.objectContaining({ date: '1990-01-01', location: 'Boston' })
-    )
+    const person = result.current.data.people.find(p => p.id === 'john-gurney-brown-jr')
+    expect(person.photos).toHaveLength(1)
+    expect(person.photos[0].filename).toBe('test.jpg')
+    expect(person.photos[0].url).toContain('test.jpg')
+  })
+
+  it('people without photos get empty array', async () => {
+    const { result } = renderHook(() => useFamilyData(), { wrapper })
+    await waitFor(() => expect(result.current.loaded).toBe(true))
+    const person = result.current.data.people.find(p => p.id === 'laryn-david-brown')
+    expect(person.photos).toEqual([])
   })
 })

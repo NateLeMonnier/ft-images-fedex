@@ -107,6 +107,50 @@ Photo with date exactly matching the death date: should display (not suppressed)
 Person with no death date: all photo dates display normally.
 
 
+## 3A. Photo Sort Order
+
+The user can toggle between "Newest first" and "Oldest first" sorting in the person page header. The sort must work across all date formats and persist across page refreshes.
+
+### 3A.1 Sort toggle changes grid order
+
+1. Open a person page with multiple dated photos
+2. Click "Newest first" to toggle to "Oldest first"
+3. Verify photos reorder: the earliest-dated photo should appear first (top-left)
+4. Click again to return to "Newest first"
+5. Verify the most recent photo is now first
+
+### 3A.2 Sort works across date formats
+
+Photos may have dates in different formats:
+- ISO from EXIF: "2005-05-30"
+- User-entered: "27 March 1967"
+- Year-only: "1920"
+
+All formats must sort correctly relative to each other. For example, a photo dated "27 March 1967" should sort between "1920" and "2005-05-30".
+
+### 3A.3 Photos without dates sort to end
+
+Photos with no date (null) should always appear at the end of the grid, regardless of sort direction.
+
+### 3A.4 Sort preference persists
+
+1. Set sort to "Oldest first"
+2. Refresh the page
+3. Sort should still be "Oldest first"
+4. Navigate to a different person's page -- same sort preference should apply
+
+### 3A.5 Sort does not affect profile photo selection
+
+Changing the sort order must not change which photo is used as the profile photo. The profile photo is determined by the primaryPhoto field, not array position.
+
+### 3A.6 Lightbox navigation follows sort order
+
+1. Set sort to "Oldest first"
+2. Click the first photo in the grid to open the lightbox
+3. Click "Next" -- should show the second photo from the sorted grid
+4. The "Photo N of M" counter should correspond to sorted grid position
+
+
 ## 4. Data Persistence (Supabase)
 
 User-contributed data must persist across browser sessions, different browsers, and different users. All editable data is stored in Supabase, not localStorage.
@@ -196,7 +240,21 @@ Open the lightbox for the photo that is currently the profile photo. Instead of 
 
 ### 6.4 Independence from sort order
 
-The profile photo selection is stored as a primaryPhoto field, not as array position. If the photos array is reordered in family.json, the selected profile photo should remain the same.
+The profile photo selection is stored as a primaryPhoto field, not as array position. If the photos array is reordered by sorting, the selected profile photo should remain the same.
+
+### 6.5 Profile photo honored in "People in this photo"
+
+The tagged people ribbon in the lightbox must display each person's selected profile photo as their avatar thumbnail, not the first photo in their array.
+
+1. Set a profile photo for Person A (not the first photo)
+2. Open a different photo that Person A is tagged in
+3. Person A's avatar in the "People in this photo" ribbon should show their selected profile photo
+4. Change Person A's profile photo to a different image
+5. Return to the tagged photo -- avatar should reflect the new selection
+
+### 6.6 Profile photo honored in tree nodes
+
+The family tree view should also display each person's selected profile photo as their node thumbnail, not the first photo in their array.
 
 
 ## 7. Design Spec Compliance
@@ -252,6 +310,19 @@ If the Supabase connection fails (wrong URL, network down), the page should stil
 
 Photos with spaces in filenames (like "John Jr. portrait.jpeg" and "Scan 6a.jpeg") should load correctly in both the grid and lightbox.
 
-### 8.5 Concurrent edits
+### 8.5 Override does not clobber unrelated fields
+
+When a single field is updated via person_overrides (e.g. setting a profile photo), other fields in family.json (birth date, birth location, notes) must not be overwritten with null.
+
+Test:
+1. Note a person's birth location from family.json (base data)
+2. Set their profile photo via the lightbox
+3. Refresh the page -- birth location should still display
+4. Open in a different browser -- birth location should still display
+5. Check Supabase person_overrides table: birth_location should be null (no override), but the UI should show the family.json value
+
+Root cause: Supabase upsert creates a row with null for unset columns. The override merge must skip null values, only applying fields that were explicitly set.
+
+### 8.6 Concurrent edits
 
 Two users edit the same photo's metadata simultaneously. The last save wins. Neither user should see an error.

@@ -1,0 +1,22 @@
+{
+  "title": "TestPhoto.jpg",
+  "description": "Dad at the family reunion, summer 1985",
+  "photoTakenTime": {
+    "timestamp": "491270400",
+    "formatted": "Jul 27, 1985, 12:00:00 AM UTC"
+  },
+  "geoData": {
+    "latitude": 36.364530,
+    "longitude": -76.744720,
+    "altitude": 0.0,
+    "latitudeSpan": 0.0,
+    "longitudeSpan": 0.0
+  },
+  "geoDataExif": {
+    "latitude": 36.364530,
+    "longitude": -76.744720,
+    "altitude": 0.0,
+    "latitudeSpan": 0.0,
+    "longitudeSpan": 0.0
+  }
+}
