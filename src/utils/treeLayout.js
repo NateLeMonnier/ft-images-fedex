@@ -1,4 +1,4 @@
-import * as dagre from '@dagrejs/dagre'
+import { graphlib, layout } from '@dagrejs/dagre'
 import { Position } from '@xyflow/react'
 
 const PIVOT_WIDTH = 220
@@ -64,7 +64,7 @@ export function buildReactFlowGraph(people, relationships, pivotId, maxDepth = 3
   )
 
   // Dagre layout on parent relationships only
-  const g = new dagre.graphlib.Graph()
+  const g = new graphlib.Graph()
   g.setDefaultEdgeLabel(() => ({}))
   g.setGraph({ rankdir: 'LR', nodesep: 24, ranksep: 64 })
 
@@ -75,7 +75,7 @@ export function buildReactFlowGraph(people, relationships, pivotId, maxDepth = 3
   // source = child (personBId), target = parent (personAId) → parents appear to the right
   parentRels.forEach(r => g.setEdge(r.personBId, r.personAId))
 
-  dagre.layout(g)
+  layout(g)
 
   const nodes = visible.map(p => {
     const { x, y } = g.node(p.id)
