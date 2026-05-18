@@ -39,6 +39,20 @@ const labelStyle = {
   display: 'block',
 }
 
+const MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+]
+
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (!match) return dateStr
+  const day = parseInt(match[3], 10)
+  const month = MONTHS[parseInt(match[2], 10) - 1]
+  return `${day} ${month} ${match[1]}`
+}
+
 export default function PhotoLightbox({
   src,
   onClose,
@@ -54,20 +68,20 @@ export default function PhotoLightbox({
 }) {
   const navigate = useNavigate()
 
-  const [date, setDate] = useState(metadata?.date || '')
+  const [date, setDate] = useState(formatDate(metadata?.date) || '')
   const [location, setLocation] = useState(metadata?.location || '')
   const [description, setDescription] = useState(metadata?.description || '')
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    setDate(metadata?.date || '')
+    setDate(formatDate(metadata?.date) || '')
     setLocation(metadata?.location || '')
     setDescription(metadata?.description || '')
     setSaved(false)
   }, [metadata?.date, metadata?.location, metadata?.description])
 
   const hasChanges =
-    date !== (metadata?.date || '') ||
+    date !== (formatDate(metadata?.date) || '') ||
     location !== (metadata?.location || '') ||
     description !== (metadata?.description || '')
 
@@ -155,7 +169,7 @@ export default function PhotoLightbox({
                 type="text"
                 value={date}
                 onChange={e => setDate(e.target.value)}
-                placeholder="e.g. 1968-08-14"
+                placeholder="e.g. 27 March 1967"
                 style={inputStyle}
               />
             </div>
@@ -246,8 +260,9 @@ export default function PhotoLightbox({
             </span>
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
               {taggedPeople.map(person => {
-                const photoUrl = person.photos[0]
-                  ? `/photos/${person.id}/${person.photos[0]}`
+                const thumbFile = person.primaryPhoto || person.photos[0]
+                const photoUrl = thumbFile
+                  ? `/photos/${person.id}/${thumbFile}`
                   : null
                 return (
                   <button

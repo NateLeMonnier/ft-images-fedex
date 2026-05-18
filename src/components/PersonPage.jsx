@@ -4,6 +4,27 @@ import { useFamilyData } from '../hooks/useFamilyData'
 import PhotoLightbox from './PhotoLightbox'
 import EditModal from './EditModal'
 
+function parseLooseDate(str) {
+  if (!str) return null
+  const match = str.match(/(\d{4})/)
+  if (!match) return null
+  const year = parseInt(match[1], 10)
+  const monthMatch = str.match(/(\d{1,2})\s+\w+\s+\d{4}|(\w+)\s+(\d{1,2})|\d{4}-(\d{2})-(\d{2})/)
+  if (monthMatch) {
+    const isoMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    if (isoMatch) return new Date(year, parseInt(isoMatch[2], 10) - 1, parseInt(isoMatch[3], 10))
+  }
+  return new Date(str)
+}
+
+function isAfterDeath(photoDate, deathDate) {
+  if (!photoDate || !deathDate) return false
+  const photo = parseLooseDate(photoDate)
+  const death = parseLooseDate(deathDate)
+  if (!photo || !death || isNaN(photo.getTime()) || isNaN(death.getTime())) return false
+  return photo > death
+}
+
 const COLORS = {
   brownRed: '#A43032',
   olive: '#828700',
@@ -179,7 +200,10 @@ export default function PersonPage() {
         const filename = person.photos[lightboxIndex]
         const key = `${person.id}/${filename}`
         const url = `/photos/${person.id}/${filename}`
-        const meta = photoMeta[key] || {}
+        const rawMeta = photoMeta[key] || {}
+        const meta = isAfterDeath(rawMeta.date, person.deathDate)
+          ? { ...rawMeta, date: null }
+          : rawMeta
         return (
           <PhotoLightbox
             src={url}

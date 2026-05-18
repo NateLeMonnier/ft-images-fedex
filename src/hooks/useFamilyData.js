@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import rawData from '../data/family.json'
 
@@ -49,7 +49,7 @@ export function useFamilyData() {
     load()
   }, [])
 
-  const data = applyOverrides(rawData, personOverrides)
+  const data = useMemo(() => applyOverrides(rawData, personOverrides), [personOverrides])
 
   const updatePerson = useCallback(async (personId, changes) => {
     const dbChanges = {}

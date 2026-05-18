@@ -6,7 +6,6 @@ import PersonNode from './PersonNode'
 import EditModal from './EditModal'
 import { buildReactFlowGraph } from '../utils/treeLayout'
 import { useFamilyData } from '../hooks/useFamilyData'
-import { exportJson } from '../utils/exportJson'
 
 function BracketEdge({ id, sourceX, sourceY, targetX, targetY, style }) {
   const breakX = sourceX + (targetX - sourceX) * 0.75
@@ -43,8 +42,6 @@ export default function TreeView() {
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
 
-  // Always build from DEFAULT_PIVOT so the full tree is shown regardless of
-  // which person was navigated from. pivotId only controls highlight + pan.
   useEffect(() => {
     const graph = buildReactFlowGraph(data.people, data.relationships, DEFAULT_PIVOT)
     setNodes(graph.nodes.map(n => ({
@@ -52,8 +49,6 @@ export default function TreeView() {
       data: { ...n.data, isPivot: n.id === pivotId, onEdit: setEditingPersonId },
     })))
     setEdges(graph.edges)
-    // Pan to pivotId's position if it's in the graph, else fall back to default center.
-    // 95 = DEFAULT_WIDTH/2 (190), 40 = NODE_HEIGHT/2 (80)
     const targetNode = graph.nodes.find(n => n.id === pivotId)
     setPivotCenter(targetNode
       ? { x: targetNode.position.x + 95, y: targetNode.position.y + 40 }
@@ -87,21 +82,6 @@ export default function TreeView() {
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
-      <div style={{ position: 'absolute', top: 12, right: 16, zIndex: 5 }}>
-        <button
-          style={{
-            background: '#fff',
-            border: '0.5px solid #E5E1D9',
-            color: '#4A413A', borderRadius: 16, padding: '6px 14px',
-            fontSize: 11, cursor: 'pointer',
-            fontFamily: 'Inter, Helvetica, Arial, sans-serif',
-            boxShadow: '0 1px 4px rgba(74,65,58,0.08)',
-          }}
-          onClick={() => exportJson(data)}
-        >
-          Preserve changes → Export JSON
-        </button>
-      </div>
 
       <ReactFlow
         nodes={nodes}

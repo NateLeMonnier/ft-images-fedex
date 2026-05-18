@@ -75,14 +75,6 @@ export default function EditModal({ person, onSave, onClose }) {
           />
         </div>
 
-        <div style={{
-          fontSize: 10, color: 'rgba(255,255,255,0.35)', marginBottom: 16, lineHeight: 1.5,
-        }}>
-          <strong style={{ color: 'rgba(255,255,255,0.55)' }}>Note:</strong> Changes are saved in
-          your browser. To preserve them permanently, click{' '}
-          <em>Preserve changes → Export JSON</em> on the tree page and commit the downloaded file to the repo.
-        </div>
-
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <button
             onClick={onClose}
