@@ -1,180 +1,271 @@
-import { graphlib, layout } from '@dagrejs/dagre'
 import { Position } from '@xyflow/react'
 
 const PIVOT_WIDTH = 220
 const DEFAULT_WIDTH = 190
 const NODE_HEIGHT = 64
+const HALF_COUPLE = 48     // vertical offset: male above center, female below
+const SLOT_HEIGHT = 220    // vertical space per leaf couple — must exceed 2*HALF_COUPLE + NODE_HEIGHT
+const COL_WIDTH = 300
+const CHILD_X_OFFSET = -300
+const CHILD_SPACING = 100
+const PIVOT_SPOUSE_GAP = 88
 
-/**
- * BFS from pivotId through parent and child relationships.
- * Ancestor hops (up) and descendant hops (down) are counted separately.
- * Spouse links carry the same hop counts as the node they connect to.
- * Downward traversal is blocked once we've gone up into ancestor territory.
- */
-export function filterByDepth(people, relationships, pivotId, maxAncestorDepth = 3, maxDescendantDepth = 1) {
-  const visited = new Map([[pivotId, { aHops: 0, dHops: 0 }]])
-  const queue = [{ id: pivotId, aHops: 0, dHops: 0 }]
+// ─── Bloodline helpers ─────────────────────────────────────────────────────
 
-  while (queue.length > 0) {
-    const { id, aHops, dHops } = queue.shift()
-
-    for (const rel of relationships) {
-      if (rel.type === 'parent') {
-        // Traverse up: child → parent (ancestor direction)
-        if (rel.personBId === id) {
-          const next = { aHops: aHops + 1, dHops }
-          if (!visited.has(rel.personAId) && next.aHops <= maxAncestorDepth) {
-            visited.set(rel.personAId, next)
-            queue.push({ id: rel.personAId, ...next })
-          }
-        }
-        // Traverse down: parent → child (descendant direction)
-        // Blocked from ancestor nodes to avoid showing aunts/uncles/cousins
-        if (rel.personAId === id && aHops === 0) {
-          const next = { aHops: 0, dHops: dHops + 1 }
-          if (!visited.has(rel.personBId) && next.dHops <= maxDescendantDepth) {
-            visited.set(rel.personBId, next)
-            queue.push({ id: rel.personBId, ...next })
-          }
-        }
-      }
-
-      if (rel.type === 'spouse') {
-        const other =
-          rel.personAId === id ? rel.personBId :
-          rel.personBId === id ? rel.personAId :
-          null
-        if (other && !visited.has(other)) {
-          visited.set(other, { aHops, dHops })
-          queue.push({ id: other, aHops, dHops })
-        }
+function buildBloodline(people, relationships, pivotId, maxDepth) {
+  const gen = new Map([[pivotId, 0]])
+  const queue = [{ id: pivotId, g: 0 }]
+  while (queue.length) {
+    const { id, g } = queue.shift()
+    if (g >= maxDepth) continue
+    for (const r of relationships) {
+      if (r.type === 'parent' && r.personBId === id && !gen.has(r.personAId)) {
+        gen.set(r.personAId, g + 1)
+        queue.push({ id: r.personAId, g: g + 1 })
       }
     }
   }
-
-  return people.filter(p => visited.has(p.id))
+  return gen
 }
 
-// Post-process dagre positions so males always appear above females in the same rank.
-// Groups nodes by their family cluster (shared child) before sorting to avoid edge crossings.
-function enforceGenderOrdering(g, visible, relationships) {
-  const visibleIds = new Set(visible.map(p => p.id))
-
-  // Group visible nodes by x-rank (same column in LR layout)
-  const rankMap = new Map()
-  visible.forEach(p => {
-    const rx = Math.round(g.node(p.id).x)
-    if (!rankMap.has(rx)) rankMap.set(rx, [])
-    rankMap.get(rx).push(p)
-  })
-
-  rankMap.forEach(group => {
-    if (group.length <= 1) return
-
-    // Anchor each node to the average y of its visible children.
-    // Nodes sharing the same anchor are in the same family cluster.
-    const anchorY = new Map(group.map(p => {
-      const childYs = relationships
-        .filter(r => r.type === 'parent' && r.personAId === p.id && visibleIds.has(r.personBId))
-        .map(r => g.node(r.personBId).y)
-      const anchor = childYs.length > 0
-        ? childYs.reduce((a, b) => a + b, 0) / childYs.length
-        : g.node(p.id).y
-      return [p.id, anchor]
-    }))
-
-    // Collect current y-values sorted ascending
-    const sortedYs = group.map(p => g.node(p.id).y).sort((a, b) => a - b)
-
-    // Sort group: primary by family anchor y (keeps parent clusters together),
-    // secondary by gender (male = lower y, female = higher y)
-    const genderRank = g => g === 'male' ? 0 : 1
-    group.sort((a, b) => {
-      const anchorDiff = anchorY.get(a.id) - anchorY.get(b.id)
-      if (Math.abs(anchorDiff) > 1) return anchorDiff
-      return genderRank(a.gender) - genderRank(b.gender)
-    })
-
-    // Assign sorted y-values back
-    group.forEach((p, i) => {
-      const n = g.node(p.id)
-      g.setNode(p.id, { ...n, y: sortedYs[i] })
-    })
-  })
+function getPivotChildren(relationships, pivotId) {
+  return relationships
+    .filter(r => r.type === 'parent' && r.personAId === pivotId)
+    .map(r => r.personBId)
 }
 
-/**
- * Build React Flow nodes and edges with dagre LR layout.
- * Edge direction: child → parent so ancestors appear to the right.
- * Spouse edges are excluded from dagre but included as React Flow edges.
- * Returns { nodes, edges, pivotCenter } where pivotCenter is the pivot node's
- * center in React Flow coordinate space (used for viewport centering).
- */
+function getPivotSpouses(relationships, pivotId, childIds) {
+  const childParents = new Set()
+  for (const childId of childIds) {
+    for (const r of relationships) {
+      if (r.type === 'parent' && r.personBId === childId && r.personAId !== pivotId) {
+        childParents.add(r.personAId)
+      }
+    }
+  }
+  const spouses = []
+  for (const r of relationships) {
+    if (r.type !== 'spouse') continue
+    const other = r.personAId === pivotId ? r.personBId
+      : r.personBId === pivotId ? r.personAId : null
+    if (other) spouses.push(other)
+  }
+  // First spouse = current; keep exes only if they are a bloodline parent of a child
+  return spouses.filter((id, i) => i === 0 || childParents.has(id))
+}
+
+// ─── Couple-unit layout ────────────────────────────────────────────────────
+// Each bloodline generation is divided into "couple units": a male+female pair
+// connected by a spouse relationship, both in the bloodline.
+// Couple centers are computed bottom-up (leaves get sequential slots; inner
+// nodes center over their children's couples).
+
+function buildCoupleUnits(bloodlineGen, relationships, peopleById) {
+  const paired = new Set()
+  const couples = []
+
+  for (const r of relationships) {
+    if (r.type !== 'spouse') continue
+    const { personAId: aId, personBId: bId } = r
+    if (!bloodlineGen.has(aId) || !bloodlineGen.has(bId)) continue
+    if (paired.has(aId) || paired.has(bId)) continue
+
+    const a = peopleById.get(aId)
+    const b = peopleById.get(bId)
+    if (!a || !b) continue
+
+    const isBMale = b.gender === 'male'
+    const male = isBMale ? bId : aId
+    const female = isBMale ? aId : bId
+    const g = bloodlineGen.get(aId)
+    couples.push({ male, female, gen: g })
+    paired.add(aId)
+    paired.add(bId)
+  }
+
+  // Solo bloodline nodes (no bloodline spouse)
+  for (const [id, g] of bloodlineGen) {
+    if (paired.has(id)) continue
+    const p = peopleById.get(id)
+    couples.push({
+      male: p?.gender !== 'female' ? id : null,
+      female: p?.gender === 'female' ? id : null,
+      gen: g,
+    })
+    paired.add(id)
+  }
+
+  return couples
+}
+
+// For a given couple, find the parent couples (at gen+1)
+function parentCouplesOf(couple, allCouples, relationships, bloodlineGen) {
+  const found = new Set()
+  for (const memberId of [couple.male, couple.female].filter(Boolean)) {
+    for (const r of relationships) {
+      if (r.type !== 'parent' || r.personBId !== memberId) continue
+      const parentId = r.personAId
+      if (!bloodlineGen.has(parentId)) continue
+      const pc = allCouples.find(c => c.male === parentId || c.female === parentId)
+      if (pc) found.add(pc)
+    }
+  }
+  return [...found]
+}
+
+function assignCoupleCenters(couples, relationships, bloodlineGen, pivotId) {
+  const centerMap = new Map()
+  let nextSlot = 0
+
+  function center(couple) {
+    if (centerMap.has(couple)) return centerMap.get(couple)
+    const parents = parentCouplesOf(couple, couples, relationships, bloodlineGen)
+    if (parents.length === 0) {
+      const c = nextSlot++ * SLOT_HEIGHT
+      centerMap.set(couple, c)
+      return c
+    }
+    const c = parents.map(center).reduce((a, b) => a + b, 0) / parents.length
+    centerMap.set(couple, c)
+    return c
+  }
+
+  // Process deepest generation first to assign leaf slots before computing inner nodes
+  const sorted = [...couples]
+    .filter(c => c.male !== pivotId && c.female !== pivotId)
+    .sort((a, b) => b.gen - a.gen)
+  for (const c of sorted) center(c)
+
+  return centerMap
+}
+
+// ─── Public API ───────────────────────────────────────────────────────────
+
+export function filterByDepth(people, relationships, pivotId, maxAncestorDepth = 3, maxDescendantDepth = 1) {
+  const bloodlineGen = buildBloodline(people, relationships, pivotId, maxAncestorDepth)
+  const childIds = getPivotChildren(relationships, pivotId)
+  const pivotSpouses = getPivotSpouses(relationships, pivotId, childIds)
+  const visibleIds = new Set([...bloodlineGen.keys(), ...childIds, ...pivotSpouses])
+  return people.filter(p => visibleIds.has(p.id))
+}
+
 export function buildReactFlowGraph(people, relationships, pivotId, maxAncestorDepth = 3, maxDescendantDepth = 1) {
-  const visible = filterByDepth(people, relationships, pivotId, maxAncestorDepth, maxDescendantDepth)
-  const visibleIds = new Set(visible.map(p => p.id))
+  const peopleById = new Map(people.map(p => [p.id, p]))
 
-  const parentRels = relationships.filter(
-    r => r.type === 'parent' && visibleIds.has(r.personAId) && visibleIds.has(r.personBId)
-  )
-  const spouseRels = relationships.filter(
-    r => r.type === 'spouse' && visibleIds.has(r.personAId) && visibleIds.has(r.personBId)
-  )
+  const bloodlineGen = buildBloodline(people, relationships, pivotId, maxAncestorDepth)
+  const childIds = getPivotChildren(relationships, pivotId)
+  const pivotSpouses = getPivotSpouses(relationships, pivotId, childIds)
 
-  const g = new graphlib.Graph()
-  g.setDefaultEdgeLabel(() => ({}))
-  g.setGraph({ rankdir: 'LR', nodesep: 24, ranksep: 64 })
+  const couples = buildCoupleUnits(bloodlineGen, relationships, peopleById)
+  const centerMap = assignCoupleCenters(couples, relationships, bloodlineGen, pivotId)
 
-  visible.forEach(p => {
-    g.setNode(p.id, { width: p.id === pivotId ? PIVOT_WIDTH : DEFAULT_WIDTH, height: NODE_HEIGHT })
-  })
+  // Build id→y from couple centers
+  const yById = new Map()
+  for (const couple of couples) {
+    if (couple.male === pivotId || couple.female === pivotId) continue
+    const c = centerMap.get(couple) ?? 0
+    if (couple.male) yById.set(couple.male, c - HALF_COUPLE)
+    if (couple.female) yById.set(couple.female, c + HALF_COUPLE)
+  }
 
-  // source = child (personBId), target = parent (personAId) → parents appear to the right
-  parentRels.forEach(r => g.setEdge(r.personBId, r.personAId))
+  // Pivot y: center of gen-1 couple (if exists), else 0
+  const gen1Couple = couples.find(c => c.gen === 1)
+  const pivotY = gen1Couple ? (centerMap.get(gen1Couple) ?? 0) : 0
+  yById.set(pivotId, pivotY)
 
-  layout(g)
+  const nodes = []
+  const edges = []
 
-  // Enforce: males always appear above females within each family cluster
-  enforceGenderOrdering(g, visible, relationships)
-
-  const { x: pivotDagreX, y: pivotDagreY } = g.node(pivotId)
-
-  const nodes = visible.map(p => {
-    const { x, y } = g.node(p.id)
-    const width = p.id === pivotId ? PIVOT_WIDTH : DEFAULT_WIDTH
-    return {
-      id: p.id,
+  function addNode(id, x, y, isPivot = false) {
+    const person = peopleById.get(id)
+    if (!person) return
+    const width = isPivot ? PIVOT_WIDTH : DEFAULT_WIDTH
+    nodes.push({
+      id,
       type: 'personNode',
       position: { x: x - width / 2, y: y - NODE_HEIGHT / 2 },
-      data: { person: p, isPivot: p.id === pivotId },
+      data: { person, isPivot },
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
-    }
+    })
+  }
+
+  // Pivot
+  addNode(pivotId, 0, pivotY, true)
+
+  // Pivot spouses stacked below
+  pivotSpouses.forEach((spouseId, i) => {
+    const y = pivotY + PIVOT_SPOUSE_GAP * (i + 1)
+    addNode(spouseId, 0, y)
+    edges.push({
+      id: `pivot-spouse-${spouseId}`,
+      source: pivotId,
+      target: spouseId,
+      type: 'straight',
+      sourceHandle: 'spouse-source',
+      targetHandle: 'spouse-target',
+      style: {
+        stroke: i === 0 ? 'rgba(255,210,80,0.7)' : 'rgba(255,160,60,0.55)',
+        strokeWidth: 1.5,
+        strokeDasharray: '5,4',
+      },
+    })
   })
 
-  const parentEdges = parentRels.map(r => ({
-    id: `parent-${r.personBId}-${r.personAId}`,
-    source: r.personBId,
-    target: r.personAId,
-    type: 'smoothstep',
-    sourceHandle: 'parent-source',
-    targetHandle: 'parent-target',
-    style: { stroke: 'rgba(255,255,255,0.45)', strokeWidth: 1.5 },
-  }))
+  // Bloodline ancestor nodes
+  for (const couple of couples) {
+    if (couple.male === pivotId || couple.female === pivotId) continue
+    const c = centerMap.get(couple) ?? 0
+    const x = couple.gen * COL_WIDTH
+    if (couple.male) addNode(couple.male, x, c - HALF_COUPLE)
+    if (couple.female) addNode(couple.female, x, c + HALF_COUPLE)
 
-  const spouseEdges = spouseRels.map(r => ({
-    id: `spouse-${r.personAId}-${r.personBId}`,
-    source: r.personAId,
-    target: r.personBId,
-    type: 'straight',
-    sourceHandle: 'spouse-source',
-    targetHandle: 'spouse-target',
-    style: { stroke: 'rgba(255,210,80,0.7)', strokeWidth: 1.5, strokeDasharray: '5,4' },
-  }))
-
-  return {
-    nodes,
-    edges: [...parentEdges, ...spouseEdges],
-    pivotCenter: { x: pivotDagreX, y: pivotDagreY },
+    if (couple.male && couple.female) {
+      edges.push({
+        id: `spouse-${couple.male}-${couple.female}`,
+        source: couple.male,
+        target: couple.female,
+        type: 'straight',
+        sourceHandle: 'spouse-source',
+        targetHandle: 'spouse-target',
+        style: { stroke: 'rgba(255,210,80,0.7)', strokeWidth: 1.5, strokeDasharray: '5,4' },
+      })
+    }
   }
+
+  // Children stacked to the left of pivot
+  const totalH = (childIds.length - 1) * CHILD_SPACING
+  childIds.forEach((childId, i) => {
+    const y = pivotY - totalH / 2 + i * CHILD_SPACING
+    addNode(childId, CHILD_X_OFFSET, y)
+  })
+
+  // Parent edges (child → parent, right handle → left handle)
+  const nodeIds = new Set(nodes.map(n => n.id))
+  const edgeIds = new Set()
+  for (const r of relationships) {
+    if (r.type !== 'parent') continue
+    const src = r.personBId  // child
+    const tgt = r.personAId  // parent
+    if (!nodeIds.has(src) || !nodeIds.has(tgt)) continue
+    const eid = `parent-${src}-${tgt}`
+    if (edgeIds.has(eid)) continue
+    edgeIds.add(eid)
+    edges.push({
+      id: eid,
+      source: src,
+      target: tgt,
+      type: 'bracket',
+      sourceHandle: 'parent-source',
+      targetHandle: 'parent-target',
+      style: { stroke: 'rgba(255,255,255,0.45)', strokeWidth: 1.5 },
+    })
+  }
+
+  const pivotNode = nodes.find(n => n.id === pivotId)
+  const pivotCenter = pivotNode
+    ? { x: pivotNode.position.x + PIVOT_WIDTH / 2, y: pivotNode.position.y + NODE_HEIGHT / 2 }
+    : { x: 0, y: 0 }
+
+  return { nodes, edges, pivotCenter }
 }

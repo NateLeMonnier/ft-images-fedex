@@ -8,7 +8,16 @@ import { buildReactFlowGraph } from '../utils/treeLayout'
 import { useFamilyData } from '../hooks/useFamilyData'
 import { exportJson } from '../utils/exportJson'
 
+// Bracket edge: horizontal from source → vertical at 75% x → horizontal to target.
+// Multiple edges from the same source share the horizontal run; they branch at the same x.
+function BracketEdge({ id, sourceX, sourceY, targetX, targetY, style }) {
+  const breakX = sourceX + (targetX - sourceX) * 0.75
+  const d = `M ${sourceX},${sourceY} H ${breakX} V ${targetY} H ${targetX}`
+  return <path id={id} d={d} style={{ ...style, fill: 'none' }} className="react-flow__edge-path" />
+}
+
 const nodeTypes = { personNode: PersonNode }
+const edgeTypes = { bracket: BracketEdge }
 
 const DEFAULT_PIVOT = 'laryn-david-brown'
 
@@ -133,6 +142,7 @@ export default function TreeView() {
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeClick={handleNodeClick}
