@@ -1,16 +1,97 @@
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-export default function PhotoLightbox({ src, onClose, taggedPeople = [] }) {
+const COLORS = {
+  brownRed: '#A43032',
+  olive: '#828700',
+  warmDark: '#4A413A',
+  warmGray: '#8B8580',
+  border: '#E5E1D9',
+  photoPlaceholder: '#F3F1EC',
+}
+
+const FONT = {
+  heading: "'Playfair Display', Georgia, serif",
+  body: "Georgia, 'Times New Roman', serif",
+  ui: "Inter, Helvetica, Arial, sans-serif",
+}
+
+const inputStyle = {
+  fontFamily: FONT.body,
+  fontSize: 12,
+  color: COLORS.warmDark,
+  background: COLORS.photoPlaceholder,
+  border: `0.5px solid ${COLORS.border}`,
+  borderRadius: 4,
+  padding: '6px 8px',
+  width: '100%',
+  outline: 'none',
+  boxSizing: 'border-box',
+}
+
+const labelStyle = {
+  fontFamily: FONT.ui,
+  fontSize: 10,
+  color: COLORS.warmGray,
+  textTransform: 'uppercase',
+  letterSpacing: '0.04em',
+  marginBottom: 3,
+  display: 'block',
+}
+
+export default function PhotoLightbox({
+  src,
+  onClose,
+  taggedPeople = [],
+  onSetProfile,
+  isProfile,
+  metadata,
+  photoIndex,
+  photoCount,
+  onPrev,
+  onNext,
+  onUpdateMetadata,
+}) {
   const navigate = useNavigate()
+
+  const [date, setDate] = useState(metadata?.date || '')
+  const [location, setLocation] = useState(metadata?.location || '')
+  const [description, setDescription] = useState(metadata?.description || '')
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    setDate(metadata?.date || '')
+    setLocation(metadata?.location || '')
+    setDescription(metadata?.description || '')
+    setSaved(false)
+  }, [metadata?.date, metadata?.location, metadata?.description])
+
+  const hasChanges =
+    date !== (metadata?.date || '') ||
+    location !== (metadata?.location || '') ||
+    description !== (metadata?.description || '')
+
+  function handleSave() {
+    if (!onUpdateMetadata) return
+    onUpdateMetadata({
+      date: date || null,
+      location: location || null,
+      description: description || null,
+    })
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
 
   useEffect(() => {
     function handleKey(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
       if (e.key === 'Escape') onClose()
+      if (e.key === 'ArrowLeft' && onPrev) onPrev()
+      if (e.key === 'ArrowRight' && onNext) onNext()
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [onClose])
+  }, [onClose, onPrev, onNext])
 
   function handlePersonClick(e, personId) {
     e.stopPropagation()
@@ -35,6 +116,7 @@ export default function PhotoLightbox({ src, onClose, taggedPeople = [] }) {
           padding: 24,
           maxWidth: '80vw',
           maxHeight: '90vh',
+          width: 640,
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
@@ -46,11 +128,11 @@ export default function PhotoLightbox({ src, onClose, taggedPeople = [] }) {
           style={{
             position: 'absolute', top: 12, right: 16,
             background: 'none', border: 'none',
-            color: '#8B8580', fontSize: 20, cursor: 'pointer', lineHeight: 1,
+            color: COLORS.warmGray, fontSize: 20, cursor: 'pointer', lineHeight: 1,
           }}
           aria-label="Close"
         >
-          ×
+          &times;
         </button>
 
         <img
@@ -58,25 +140,105 @@ export default function PhotoLightbox({ src, onClose, taggedPeople = [] }) {
           alt=""
           style={{
             maxWidth: '100%',
-            maxHeight: '70vh',
+            maxHeight: '55vh',
             objectFit: 'contain',
             display: 'block',
-            boxShadow: '0 2px 12px rgba(74,65,58,0.12)',
           }}
         />
 
-        {/* Caption block — date · location and caption text slot in here when data model supports it */}
+        {/* Editable caption fields */}
+        <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Date</label>
+              <input
+                type="text"
+                value={date}
+                onChange={e => setDate(e.target.value)}
+                placeholder="e.g. 1968-08-14"
+                style={inputStyle}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Location</label>
+              <input
+                type="text"
+                value={location}
+                onChange={e => setLocation(e.target.value)}
+                placeholder="e.g. Cape Cod, Massachusetts"
+                style={inputStyle}
+              />
+            </div>
+          </div>
+          <div>
+            <label style={labelStyle}>Description</label>
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder="What is happening in this photo?"
+              rows={2}
+              style={{ ...inputStyle, resize: 'vertical', fontFamily: FONT.body }}
+            />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
+            <button
+              onClick={handleSave}
+              disabled={!hasChanges && !saved}
+              style={{
+                background: hasChanges ? COLORS.brownRed : 'none',
+                color: hasChanges ? '#fff' : COLORS.warmGray,
+                border: hasChanges ? 'none' : `0.5px solid ${COLORS.border}`,
+                borderRadius: 16,
+                padding: '6px 18px',
+                fontFamily: FONT.ui,
+                fontSize: 12,
+                cursor: hasChanges ? 'pointer' : 'default',
+                transition: 'all 0.15s',
+              }}
+            >
+              Save
+            </button>
+            {saved && (
+              <span style={{ fontFamily: FONT.body, fontSize: 12, color: COLORS.olive }}>
+                Saved
+              </span>
+            )}
+          </div>
+        </div>
 
+        {/* Set as profile photo */}
+        {onSetProfile && (
+          <div style={{ marginTop: 12, borderTop: `0.5px solid ${COLORS.border}`, paddingTop: 12 }}>
+            {isProfile ? (
+              <span style={{ fontFamily: FONT.body, fontSize: 12, color: COLORS.olive }}>
+                This is the profile photo
+              </span>
+            ) : (
+              <button
+                onClick={onSetProfile}
+                style={{
+                  background: 'none', border: `0.5px solid ${COLORS.border}`,
+                  borderRadius: 16, padding: '6px 14px',
+                  fontFamily: FONT.ui, fontSize: 12, color: COLORS.brownRed, cursor: 'pointer',
+                }}
+              >
+                Set as profile photo
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Tagged people with avatar thumbnails */}
         {taggedPeople.length > 0 && (
           <div style={{
-            marginTop: 16,
-            borderTop: '0.5px solid #E5E1D9',
+            marginTop: 12,
+            borderTop: `0.5px solid ${COLORS.border}`,
             paddingTop: 12,
           }}>
             <span style={{
-              fontFamily: 'Georgia, serif',
+              fontFamily: FONT.body,
               fontSize: 10,
-              color: '#8B8580',
+              color: COLORS.warmGray,
               display: 'block',
               marginBottom: 10,
             }}>
@@ -99,8 +261,8 @@ export default function PhotoLightbox({ src, onClose, taggedPeople = [] }) {
                     <div style={{
                       width: 40, height: 40, borderRadius: '50%',
                       overflow: 'hidden', flexShrink: 0,
-                      background: '#F3F1EC',
-                      border: '0.5px solid #E5E1D9',
+                      background: COLORS.photoPlaceholder,
+                      border: `0.5px solid ${COLORS.border}`,
                     }}>
                       {photoUrl && (
                         <img
@@ -111,9 +273,9 @@ export default function PhotoLightbox({ src, onClose, taggedPeople = [] }) {
                       )}
                     </div>
                     <span style={{
-                      fontFamily: 'Georgia, serif',
+                      fontFamily: FONT.body,
                       fontSize: 10,
-                      color: '#A43032',
+                      color: COLORS.brownRed,
                       whiteSpace: 'nowrap',
                     }}>
                       {person.name}
@@ -122,6 +284,45 @@ export default function PhotoLightbox({ src, onClose, taggedPeople = [] }) {
                 )
               })}
             </div>
+          </div>
+        )}
+
+        {/* Footer navigation */}
+        {photoCount > 1 && (
+          <div style={{
+            marginTop: 12,
+            borderTop: `0.5px solid ${COLORS.border}`,
+            paddingTop: 12,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontFamily: FONT.body,
+            fontSize: 12,
+            color: COLORS.warmGray,
+          }}>
+            <button
+              onClick={onPrev}
+              disabled={!onPrev}
+              style={{
+                background: 'none', border: 'none', cursor: onPrev ? 'pointer' : 'default',
+                fontFamily: FONT.body, fontSize: 12,
+                color: onPrev ? COLORS.warmDark : COLORS.border, padding: 0,
+              }}
+            >
+              &larr; Previous
+            </button>
+            <span>Photo {photoIndex + 1} of {photoCount}</span>
+            <button
+              onClick={onNext}
+              disabled={!onNext}
+              style={{
+                background: 'none', border: 'none', cursor: onNext ? 'pointer' : 'default',
+                fontFamily: FONT.body, fontSize: 12,
+                color: onNext ? COLORS.warmDark : COLORS.border, padding: 0,
+              }}
+            >
+              Next &rarr;
+            </button>
           </div>
         )}
       </div>

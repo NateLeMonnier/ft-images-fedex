@@ -24,8 +24,8 @@ const FONT = {
 export default function PersonPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { data, updatePerson, getPeopleInPhoto } = useFamilyData()
-  const [lightboxPhoto, setLightboxPhoto] = useState(null)
+  const { data, updatePerson, getPeopleInPhoto, photoMeta, updatePhotoMetadata } = useFamilyData()
+  const [lightboxIndex, setLightboxIndex] = useState(null)
   const [editOpen, setEditOpen] = useState(false)
 
   const person = data.people.find(p => p.id === id)
@@ -41,8 +41,9 @@ export default function PersonPage() {
     )
   }
 
-  const primaryPhoto = person.photos[0]
-    ? `/photos/${person.id}/${person.photos[0]}`
+  const primaryFilename = person.primaryPhoto || person.photos[0]
+  const primaryPhoto = primaryFilename
+    ? `/photos/${person.id}/${primaryFilename}`
     : null
 
   const birthYear = person.birthDate ? person.birthDate.match(/\d{4}/)?.[0] : null
@@ -154,11 +155,10 @@ export default function PersonPage() {
         }}>
           {person.photos.map((filename, idx) => {
             const url = `/photos/${person.id}/${filename}`
-            const key = `${person.id}/${filename}`
             return (
               <div
                 key={filename}
-                onClick={() => setLightboxPhoto({ url, filename })}
+                onClick={() => setLightboxIndex(idx)}
                 style={{
                   aspectRatio: '1', background: COLORS.photoPlaceholder,
                   borderRadius: 4, cursor: 'pointer', overflow: 'hidden',
@@ -175,13 +175,29 @@ export default function PersonPage() {
         </div>
       </div>
 
-      {lightboxPhoto && (
-        <PhotoLightbox
-          src={lightboxPhoto.url}
-          onClose={() => setLightboxPhoto(null)}
-          taggedPeople={getPeopleInPhoto(person.id, lightboxPhoto.filename)}
-        />
-      )}
+      {lightboxIndex !== null && (() => {
+        const filename = person.photos[lightboxIndex]
+        const key = `${person.id}/${filename}`
+        const url = `/photos/${person.id}/${filename}`
+        const meta = photoMeta[key] || {}
+        return (
+          <PhotoLightbox
+            src={url}
+            onClose={() => setLightboxIndex(null)}
+            taggedPeople={getPeopleInPhoto(person.id, filename)}
+            isProfile={filename === primaryFilename}
+            onSetProfile={() => {
+              updatePerson(person.id, { primaryPhoto: filename })
+            }}
+            metadata={meta}
+            photoIndex={lightboxIndex}
+            photoCount={person.photos.length}
+            onPrev={lightboxIndex > 0 ? () => setLightboxIndex(lightboxIndex - 1) : null}
+            onNext={lightboxIndex < person.photos.length - 1 ? () => setLightboxIndex(lightboxIndex + 1) : null}
+            onUpdateMetadata={(changes) => updatePhotoMetadata(key, changes)}
+          />
+        )
+      })()}
 
       {editOpen && (
         <EditModal

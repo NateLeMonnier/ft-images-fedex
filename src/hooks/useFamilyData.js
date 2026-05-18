@@ -1,46 +1,84 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { supabase } from '../lib/supabase'
 import rawData from '../data/family.json'
 
-const STORAGE_KEY = 'ft-overrides'
-
-function mergeOverrides(base, overrides) {
-  if (!overrides) return base
+function applyOverrides(base, overrides) {
+  if (!overrides || Object.keys(overrides).length === 0) return base
   return {
     ...base,
     people: base.people.map(person => {
       const override = overrides[person.id]
-      return override ? { ...person, ...override } : person
+      if (!override) return person
+      return {
+        ...person,
+        ...(override.primary_photo !== undefined && { primaryPhoto: override.primary_photo }),
+        ...(override.birth_date !== undefined && { birthDate: override.birth_date }),
+        ...(override.birth_location !== undefined && { birthLocation: override.birth_location }),
+        ...(override.notes !== undefined && { notes: override.notes }),
+      }
     }),
   }
 }
 
 export function useFamilyData() {
-  const [data, setData] = useState(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      return mergeOverrides(rawData, raw ? JSON.parse(raw) : null)
-    } catch {
-      return rawData
+  const [personOverrides, setPersonOverrides] = useState({})
+  const [photoMeta, setPhotoMeta] = useState({})
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    async function load() {
+      const [persRes, metaRes] = await Promise.all([
+        supabase.from('person_overrides').select('*'),
+        supabase.from('photo_metadata').select('*'),
+      ])
+
+      if (persRes.data) {
+        const map = {}
+        for (const row of persRes.data) map[row.person_id] = row
+        setPersonOverrides(map)
+      }
+
+      if (metaRes.data) {
+        const map = {}
+        for (const row of metaRes.data) map[row.photo_key] = row
+        setPhotoMeta(map)
+      }
+
+      setLoaded(true)
     }
-  })
+    load()
+  }, [])
 
-  function updatePerson(personId, changes) {
-    let overrides = {}
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) overrides = JSON.parse(raw)
-    } catch { /* ignore corrupt storage */ }
+  const data = applyOverrides(rawData, personOverrides)
 
-    overrides[personId] = { ...(overrides[personId] || {}), ...changes }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides))
-    setData(mergeOverrides(rawData, overrides))
-  }
+  const updatePerson = useCallback(async (personId, changes) => {
+    const dbChanges = {}
+    if ('primaryPhoto' in changes) dbChanges.primary_photo = changes.primaryPhoto
+    if ('birthDate' in changes) dbChanges.birth_date = changes.birthDate
+    if ('birthLocation' in changes) dbChanges.birth_location = changes.birthLocation
+    if ('notes' in changes) dbChanges.notes = changes.notes
+
+    const row = { person_id: personId, ...dbChanges, updated_at: new Date().toISOString() }
+    await supabase.from('person_overrides').upsert(row)
+
+    setPersonOverrides(prev => ({
+      ...prev,
+      [personId]: { ...(prev[personId] || {}), ...row },
+    }))
+  }, [])
+
+  const updatePhotoMetadata = useCallback(async (photoKey, changes) => {
+    const row = { photo_key: photoKey, ...changes, updated_at: new Date().toISOString() }
+    await supabase.from('photo_metadata').upsert(row)
+
+    setPhotoMeta(prev => ({
+      ...prev,
+      [photoKey]: { ...(prev[photoKey] || {}), ...row },
+    }))
+  }, [])
 
   const photoTags = rawData.photoTags ?? {}
 
-  // Returns every person who appears in a given photo.
-  // If photoTags has an explicit entry for the key, that wins.
-  // Otherwise scans all people's photos arrays for the same filename.
   function getPeopleInPhoto(personId, filename) {
     const key = `${personId}/${filename}`
     const taggedIds = photoTags[key]
@@ -50,5 +88,12 @@ export function useFamilyData() {
     return data.people.filter(p => p.photos.includes(filename))
   }
 
-  return { data, updatePerson, getPeopleInPhoto }
+  return {
+    data,
+    updatePerson,
+    getPeopleInPhoto,
+    photoMeta,
+    updatePhotoMetadata,
+    loaded,
+  }
 }
