@@ -42,3 +42,6 @@ htmlcov/
 .cache/
 tmp/
 temp/
+
+# Visual companion (brainstorming sessions)
+.superpowers/
