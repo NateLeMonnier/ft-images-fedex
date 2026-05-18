@@ -1,9 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500&display=swap');
+
 *, *::before, *::after { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #4a8fa8;
+  font-family: Inter, Helvetica, Arial, sans-serif;
+  background: #ffffff;
 }
 
 /* ── PersonNode ── */
@@ -12,63 +14,55 @@ body {
   align-items: center;
   gap: 10px;
   border-radius: 8px;
+  border: 0.5px solid #E5E1D9;
   padding: 10px 14px;
-  height: 64px;
+  height: 80px;
   background: #fff;
   cursor: pointer;
   position: relative;
 }
 
 .person-node--pivot {
-  background: #1a2e38;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: #FFFAE9;
+  border: 1.5px solid #A43032;
 }
 
 .person-node:hover .person-node__edit { opacity: 1; }
 
 .person-node__photo {
-  width: 40px;
-  height: 40px;
-  border-radius: 5px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   flex-shrink: 0;
   object-fit: cover;
-  background: #d0d8df;
+  background: #F3F1EC;
 }
 
 .person-node__info { flex: 1; min-width: 0; }
 
 .person-node__name {
+  font-family: 'Playfair Display', Georgia, serif;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #1a2a34;
+  color: #A43032;
 }
-
-.person-node--pivot .person-node__name { color: #fff; }
 
 .person-node__sub {
   font-size: 10px;
-  color: #6a8a9a;
+  color: #8B8580;
   margin-top: 1px;
 }
 
-.person-node--pivot .person-node__sub { color: rgba(255, 255, 255, 0.6); }
-
 .person-node__badge {
-  background: #e2f0f5;
-  color: #4a8fa8;
+  color: #828700;
   border-radius: 10px;
   padding: 2px 7px;
   font-size: 10px;
   font-weight: 600;
   flex-shrink: 0;
-}
-
-.person-node--pivot .person-node__badge {
-  background: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.7);
 }
 
 .person-node__edit {
@@ -77,19 +71,33 @@ body {
   border: none;
   cursor: pointer;
   font-size: 11px;
-  color: #aac0cc;
+  color: #8B8580;
   padding: 0;
   transition: opacity 0.15s;
   flex-shrink: 0;
 }
 
-.person-node--pivot .person-node__edit { color: rgba(255, 255, 255, 0.5); }
-
 /* ── React Flow overrides ── */
 .react-flow__attribution { display: none; }
 .react-flow__handle {
-  width: 6px;
-  height: 6px;
-  background: transparent;
-  border: none;
+  width: 1px !important;
+  height: 1px !important;
+  min-width: unset !important;
+  min-height: unset !important;
+  background: transparent !important;
+  border: none !important;
+  opacity: 0;
 }
+.react-flow__controls {
+  background: #fff;
+  border: 0.5px solid #E5E1D9;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(74,65,58,0.08);
+}
+.react-flow__controls-button {
+  background: #fff;
+  border-bottom: 0.5px solid #E5E1D9;
+  color: #4A413A;
+}
+.react-flow__controls-button:hover { background: #FAF7F0; }
+.react-flow__controls-button svg { fill: #4A413A; }

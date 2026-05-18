@@ -116,22 +116,18 @@ export default function TreeView() {
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
-      {/* Top bar */}
+      {/* Export button */}
       <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 5,
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '12px 20px', pointerEvents: 'none',
+        position: 'absolute', top: 12, right: 16, zIndex: 5,
       }}>
-        <span style={{ color: '#fff', fontSize: 15, fontWeight: 600, pointerEvents: 'none' }}>
-          Walker Family Tree
-        </span>
         <button
           style={{
-            pointerEvents: 'all',
-            background: 'rgba(255,255,255,0.15)',
-            border: '1px solid rgba(255,255,255,0.3)',
-            color: '#fff', borderRadius: 6, padding: '6px 14px',
-            fontSize: 12, cursor: 'pointer',
+            background: '#fff',
+            border: '0.5px solid #E5E1D9',
+            color: '#4A413A', borderRadius: 16, padding: '6px 14px',
+            fontSize: 11, cursor: 'pointer',
+            fontFamily: 'Inter, Helvetica, Arial, sans-serif',
+            boxShadow: '0 1px 4px rgba(74,65,58,0.08)',
           }}
           onClick={() => exportJson(data)}
         >
@@ -148,7 +144,7 @@ export default function TreeView() {
         onEdgesChange={onEdgesChange}
         onNodeClick={handleNodeClick}
         onNodeContextMenu={handleContextMenu}
-        style={{ background: '#4a8fa8' }}
+        style={{ background: '#ffffff' }}
         nodesDraggable={false}
         nodesConnectable={false}
       >
@@ -162,7 +158,7 @@ export default function TreeView() {
 
       <div style={{
         position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)',
-        color: 'rgba(255,255,255,0.5)', fontSize: 11, pointerEvents: 'none',
+        color: '#8B8580', fontSize: 11, pointerEvents: 'none',
       }}>
         Right-click any person to make them the centre of the tree
       </div>

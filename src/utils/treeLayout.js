@@ -2,7 +2,7 @@ import { Position } from '@xyflow/react'
 
 const PIVOT_WIDTH = 220
 const DEFAULT_WIDTH = 190
-const NODE_HEIGHT = 64
+const NODE_HEIGHT = 80
 const HALF_COUPLE = 48     // vertical offset: male above center, female below
 const SLOT_HEIGHT = 220    // vertical space per leaf couple — must exceed 2*HALF_COUPLE + NODE_HEIGHT
 const COL_WIDTH = 300
@@ -205,9 +205,8 @@ export function buildReactFlowGraph(people, relationships, pivotId, maxAncestorD
       sourceHandle: 'spouse-source',
       targetHandle: 'spouse-target',
       style: {
-        stroke: i === 0 ? 'rgba(255,210,80,0.7)' : 'rgba(255,160,60,0.55)',
+        stroke: '#A43032',
         strokeWidth: 1.5,
-        strokeDasharray: '5,4',
       },
     })
   })
@@ -228,7 +227,7 @@ export function buildReactFlowGraph(people, relationships, pivotId, maxAncestorD
         type: 'straight',
         sourceHandle: 'spouse-source',
         targetHandle: 'spouse-target',
-        style: { stroke: 'rgba(255,210,80,0.7)', strokeWidth: 1.5, strokeDasharray: '5,4' },
+        style: { stroke: '#A43032', strokeWidth: 1.5 },
       })
     }
   }
@@ -258,7 +257,7 @@ export function buildReactFlowGraph(people, relationships, pivotId, maxAncestorD
       type: 'bracket',
       sourceHandle: 'parent-source',
       targetHandle: 'parent-target',
-      style: { stroke: 'rgba(255,255,255,0.45)', strokeWidth: 1.5 },
+      style: { stroke: '#C9C2B5', strokeWidth: 0.5 },
     })
   }
 
