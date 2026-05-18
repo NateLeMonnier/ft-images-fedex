@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
-import { ReactFlow, useNodesState, useEdgesState, Controls } from '@xyflow/react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { ReactFlow, useNodesState, useEdgesState, Controls, useReactFlow } from '@xyflow/react'
 import { useNavigate } from 'react-router-dom'
 import '@xyflow/react/dist/style.css'
 import PersonNode from './PersonNode'
@@ -12,14 +12,56 @@ const nodeTypes = { personNode: PersonNode }
 
 const DEFAULT_PIVOT = 'kathryn-walker'
 
+// Two-phase pivot transition:
+//   Phase 1 (pendingTransition set): pan smoothly to the clicked node's current
+//     canvas position while the old tree is still rendered (~420ms).
+//   At T=440ms: instant viewport reposition to the pre-computed new layout center,
+//     then trigger the rebuild. The new tree appears already centered — no jump.
+//   Initial mount uses pivotCenter state with a full 450ms ease-in.
+function PivotFitter({ pivotCenter, pendingTransition, onTransitionComplete }) {
+  const { setCenter } = useReactFlow()
+  const suppressNextPivotCenter = useRef(false)
+
+  // Phase 1 + instant reposition at the transition point
+  useEffect(() => {
+    if (!pendingTransition) return
+    setCenter(pendingTransition.cx, pendingTransition.cy, { zoom: 1, duration: 420 })
+    const timer = setTimeout(() => {
+      // Pre-position viewport at the new layout's pivot center before the rebuild renders
+      suppressNextPivotCenter.current = true
+      setCenter(pendingTransition.newPivotCenter.x, pendingTransition.newPivotCenter.y, { zoom: 1, duration: 0 })
+      onTransitionComplete(pendingTransition.nextPivotId)
+    }, 440)
+    return () => clearTimeout(timer)
+  }, [pendingTransition, setCenter, onTransitionComplete])
+
+  // Initial mount centering (suppressed after a transition so the instant
+  // reposition above isn't overwritten by a 450ms animation)
+  useEffect(() => {
+    if (!pivotCenter) return
+    if (suppressNextPivotCenter.current) {
+      suppressNextPivotCenter.current = false
+      return
+    }
+    requestAnimationFrame(() => {
+      setCenter(pivotCenter.x, pivotCenter.y, { zoom: 1, duration: 450 })
+    })
+  }, [pivotCenter, setCenter])
+
+  return null
+}
+
 export default function TreeView() {
   const navigate = useNavigate()
   const { data, updatePerson } = useFamilyData()
   const [pivotId, setPivotId] = useState(DEFAULT_PIVOT)
+  const [pivotCenter, setPivotCenter] = useState(null)
+  const [pendingTransition, setPendingTransition] = useState(null)
   const [editingPersonId, setEditingPersonId] = useState(null)
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
 
+  // Rebuild graph whenever data or pivot changes
   useEffect(() => {
     const graph = buildReactFlowGraph(data.people, data.relationships, pivotId)
     setNodes(graph.nodes.map(n => ({
@@ -29,13 +71,35 @@ export default function TreeView() {
     setEdges(graph.edges)
   }, [data, pivotId])
 
+  // Compute pivot center for initial mount centering — only on pivot change, not data edits
+  useEffect(() => {
+    const graph = buildReactFlowGraph(data.people, data.relationships, pivotId)
+    setPivotCenter(graph.pivotCenter)
+  }, [pivotId])
+
   const handleNodeClick = useCallback((_, node) => {
     navigate(`/person/${node.id}`)
   }, [navigate])
 
+  // Phase 1: pre-compute the new layout center, then slide to the node's
+  // current position. At T=440ms PivotFitter will instant-reposition and rebuild.
   const handleContextMenu = useCallback((e, node) => {
     e.preventDefault()
-    setPivotId(node.id)
+    if (node.id === pivotId) return
+    const w = node.measured?.width ?? 190
+    const h = node.measured?.height ?? 64
+    const newGraph = buildReactFlowGraph(data.people, data.relationships, node.id)
+    setPendingTransition({
+      cx: node.position.x + w / 2,
+      cy: node.position.y + h / 2,
+      nextPivotId: node.id,
+      newPivotCenter: newGraph.pivotCenter,
+    })
+  }, [pivotId, data])
+
+  const handleTransitionComplete = useCallback((nextPivotId) => {
+    setPendingTransition(null)
+    setPivotId(nextPivotId)
   }, [])
 
   const editingPerson = data.people.find(p => p.id === editingPersonId) ?? null
@@ -73,12 +137,15 @@ export default function TreeView() {
         onEdgesChange={onEdgesChange}
         onNodeClick={handleNodeClick}
         onNodeContextMenu={handleContextMenu}
-        fitView
-        fitViewOptions={{ padding: 0.2 }}
         style={{ background: '#4a8fa8' }}
         nodesDraggable={false}
         nodesConnectable={false}
       >
+        <PivotFitter
+          pivotCenter={pivotCenter}
+          pendingTransition={pendingTransition}
+          onTransitionComplete={handleTransitionComplete}
+        />
         <Controls showInteractive={false} />
       </ReactFlow>
 

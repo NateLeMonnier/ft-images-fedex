@@ -47,6 +47,14 @@ describe('filterByDepth', () => {
     const result = filterByDepth(people, relationships, 'parent-a', 1)
     expect(result.map(p => p.id)).toContain('child')
   })
+
+  it('excludes grandchildren when maxDescendantDepth is 1', () => {
+    // grandparent → parent-a → child: child is 2 descendant hops from grandparent
+    const result = filterByDepth(people, relationships, 'grandparent', 3, 1)
+    const ids = result.map(p => p.id)
+    expect(ids).toContain('parent-a')   // 1 descendant hop — included
+    expect(ids).not.toContain('child')  // 2 descendant hops — excluded
+  })
 })
 
 describe('buildReactFlowGraph', () => {

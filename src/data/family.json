@@ -4,6 +4,7 @@
     {
       "id": "kathryn-walker",
       "name": "Kathryn Walker",
+      "gender": "female",
       "birthDate": "5 Nov 1969",
       "birthLocation": "Los Angeles, California",
       "deathDate": null,
@@ -13,6 +14,7 @@
     {
       "id": "harold-walker",
       "name": "Harold F Walker",
+      "gender": "male",
       "birthDate": "1940",
       "birthLocation": "",
       "deathDate": null,
@@ -22,6 +24,7 @@
     {
       "id": "kathryn-moore",
       "name": "Kathryn Moore",
+      "gender": "female",
       "birthDate": "1940",
       "birthLocation": "",
       "deathDate": null,
@@ -31,6 +34,7 @@
     {
       "id": "herman-walker",
       "name": "Herman Walker",
+      "gender": "male",
       "birthDate": "1914",
       "birthLocation": "",
       "deathDate": "1957",
@@ -40,6 +44,7 @@
     {
       "id": "retha-hammack",
       "name": "Retha R Hammack",
+      "gender": "female",
       "birthDate": "1917",
       "birthLocation": "",
       "deathDate": "2001",
@@ -49,6 +54,7 @@
     {
       "id": "eugene-moore",
       "name": "Eugene G Moore",
+      "gender": "male",
       "birthDate": "1912",
       "birthLocation": "",
       "deathDate": "1999",
@@ -58,6 +64,7 @@
     {
       "id": "mary-hennessy",
       "name": "Mary C Hennessy",
+      "gender": "female",
       "birthDate": "1917",
       "birthLocation": "",
       "deathDate": "1986",
